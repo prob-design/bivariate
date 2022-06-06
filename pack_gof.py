@@ -63,7 +63,7 @@ def QQ_plot(var, distribution):
     f_Q = dist.cdf(var_sorted, *pars)
 
     fig, ax = plt.subplots(figsize=(14, 8))
-    ax.plot(ecdf_Q, f_Q, color='r')
+    ax.plot(ecdf_Q, f_Q)
     ax.plot([0, 1], [0, 1], '--', color='k')
     ax.set_xlabel('Empirical quantiles')
     ax.set_ylabel('Theoretical quantiles')

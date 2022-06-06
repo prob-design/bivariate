@@ -9,6 +9,7 @@ import pack_exploration as expl
 import pack_univariate as univ
 import pack_gof as gof
 import pack_extreme as ext
+import pack_bivariate as bivar
 
 
 file = "Climate_Data_Washington.csv"
@@ -51,3 +52,13 @@ ext.fit_ev(extreme[col_names[0]])
 print(ext.AIC_BIC_ev(extreme[col_names[0]]))
 
 ext.QQ_plot_ev(extreme[col_names[0]])
+
+bivar.bivar_plot(data, col_names, labels=labels)
+
+fit = bivar.bivar_fit(data, col_names, labels=labels)
+
+print(fit)
+
+print(bivar.and_or_probabilities(data, col_names, [0.9, 0.9], labels=labels))
+
+print(bivar.and_or_probabilities(fit, col_names, [0.9, 0.9], labels=labels))
