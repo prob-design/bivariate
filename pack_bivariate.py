@@ -115,6 +115,18 @@ def bivar_fit(df, vars_used, plot=True, labels=None, N=None):
 
 def and_or_probabilities(df, vars_used, quantiles, plot=True, title=None,
                          labels=None):
+    """Computes probabilities of one or both given variables in a dataframe
+    exceeding a given quantile, and optionally creating a plot of this.
+    Arguments:
+        df (dataframe): the dataframe to use
+        vars_used (list of 2 str): the columns containing the variables
+        quantiles (list of 2 float): the quantiles to calculate
+        plot (bool): whether to create a plot of the fitted distribution
+        title (optional str): title of plot
+        labels (optional list of 2 str): labels to use in the plots
+    Returns:
+        The probability in the AND and OR scenarios
+    """
     df_quantiles = [df[vars_used[0]].quantile(quantiles[0]),
                     df[vars_used[1]].quantile(quantiles[1])]
     AND_SC = df[(df[vars_used[0]] >= df_quantiles[0]) &
@@ -148,6 +160,3 @@ def and_or_probabilities(df, vars_used, quantiles, plot=True, title=None,
         ax[1].grid()
 
     return P_AND, P_OR
-
-# def and_or_plot(df, vars_used, quantiles):
-    
