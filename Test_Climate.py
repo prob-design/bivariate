@@ -53,6 +53,12 @@ print(ext.AIC_BIC_ev(extreme[col_names[0]]))
 
 ext.QQ_plot_ev(extreme[col_names[0]])
 
-bivar.bivar_plot(data, col_names, labels)
+bivar.bivar_plot(data, col_names, labels=labels)
 
-bivar.bivar_fit(data, col_names, labels)
+fit = bivar.bivar_fit(data, col_names, labels=labels)
+
+print(fit)
+
+print(bivar.and_or_probabilities(data, col_names, [0.9, 0.9], labels=labels))
+
+print(bivar.and_or_probabilities(fit, col_names, [0.9, 0.9], labels=labels))

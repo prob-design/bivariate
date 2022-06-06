@@ -46,7 +46,6 @@ def cov_cor(df, vars_used):
     Arguments:
         df (dataframe): the dataframe to use
         vars_used (list of 2 str): the columns containing the variables
-        labels (optional list of 2 str): labels to use in the plots
     Returns:
         the covariance and Pearson's correlation coefficient
     """
@@ -57,7 +56,17 @@ def cov_cor(df, vars_used):
 
 
 def bivar_fit(df, vars_used, plot=True, labels=None, N=None):
-    """ADD DOCSTRING HERE"""
+    """Fits a bivariate normal distribution, including covariance, on two
+    variable from a dataframe, and draw samples from this fit.
+    Arguments:
+        df (dataframe): the dataframe to use
+        vars_used (list of 2 str): the columns containing the variables
+        plot (bool): whether to create a plot of the fitted distribution
+        labels (optional list of 2 str): labels to use in the plots
+        N (int): number of samples to draw. If None, equal to number in dataset
+    Returns:
+        A dataframe with the drawn samples
+    """
     dat = df[vars_used]  # Create a data frame without the timestamp
 
     mean = np.mean(dat, axis=0)
@@ -87,7 +96,8 @@ def bivar_fit(df, vars_used, plot=True, labels=None, N=None):
 
         g = sns.displot(data=df_r_norm, x=vars_used[0], y=vars_used[1],
                         kind='kde')
-        g.set_axis_labels(labels[0], labels[1])
+        if labels:
+            g.set_axis_labels(labels[0], labels[1])
         g.figure.tight_layout()
 
         plt.figure(figsize=(10, 10))
@@ -101,3 +111,43 @@ def bivar_fit(df, vars_used, plot=True, labels=None, N=None):
         plt.show()
 
     return df_r_norm
+
+
+def and_or_probabilities(df, vars_used, quantiles, plot=True, title=None,
+                         labels=None):
+    df_quantiles = [df[vars_used[0]].quantile(quantiles[0]),
+                    df[vars_used[1]].quantile(quantiles[1])]
+    AND_SC = df[(df[vars_used[0]] >= df_quantiles[0]) &
+                (df[vars_used[1]] >= df_quantiles[1])]
+    OR_SC = df[(df[vars_used[0]] >= df_quantiles[0]) |
+               (df[vars_used[1]] >= df_quantiles[1])]
+
+    P_AND = len(AND_SC) / len(df)
+    P_OR = len(OR_SC) / len(df)
+
+    if plot:
+        fig, ax = plt.subplots(1, 2, sharex=True, sharey=True, figsize=(20, 5))
+        ax[0].scatter(df[vars_used[0]], df[vars_used[1]])
+        ax[0].scatter(AND_SC[vars_used[0]], AND_SC[vars_used[1]])
+        ax[0].axvline(df_quantiles[0], color='k')
+        ax[0].axhline(df_quantiles[1], color='k')
+        ax[0].set_title(f'AND scenario, probability {P_AND:.2f}')
+        if labels:
+            ax[0].set_xlabel(labels[0])
+            ax[0].set_ylabel(labels[1])
+        ax[0].grid()
+
+        ax[1].scatter(df[vars_used[0]], df[vars_used[1]])
+        ax[1].scatter(OR_SC[vars_used[0]], OR_SC[vars_used[1]])
+        ax[1].axvline(df_quantiles[0], color='k')
+        ax[1].axhline(df_quantiles[1], color='k')
+        ax[1].set_title(f'OR scenario, probability {P_OR:.2f}')
+        if labels:
+            ax[1].set_xlabel(labels[0])
+            ax[1].set_ylabel(labels[1])
+        ax[1].grid()
+
+    return P_AND, P_OR
+
+# def and_or_plot(df, vars_used, quantiles):
+    
