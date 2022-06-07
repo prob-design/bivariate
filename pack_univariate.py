@@ -32,12 +32,15 @@ def plot_ecdf(var, label=None):
     ax[0].step(x, f, linewidth=4)  # Plot F(x)
     ax[0].set_title('$F(x)$')
     ax[0].set_ylabel('Cumulative Probability')
+    ax[0].grid()
 
     ax[1].step(x, 1-f, linewidth=4)  # Plot 1-F(x)
     ax[1].set_title('1-$F(x)$')
+    ax[1].grid()
 
     ax[2].semilogy(x, f, linewidth=4)  # Plot logY 1-F(x)
     ax[2].set_title('1-$F(x)$. Y axis log scale')
+    ax[2].grid()
     plt.show()
 
     return
@@ -74,6 +77,7 @@ def fit_distribution(var, distribution="Normal", plot=True, label=None):
         if label:
             plt.suptitle(f'CDF of {label}')
         ax.legend()
+        ax.grid()
         plt.show()
 
     return fit_pars, fit_cdf
@@ -97,24 +101,28 @@ def plot_distributions(var, seperate=True, label=None):
     dist_names = ["Normal", "Exponential", "Lognormal", "Logistic"]
 
     if seperate:
-        fig, ax = plt.subplots(1, 4, sharex=True, figsize=(20, 5))
+        fig, ax = plt.subplots(1, 4, sharex=True, sharey=True, figsize=(20, 6))
 
         for i in range(len(fitted)):
             ax[i].plot(x, f_emp, label="Empirical Distribution")
             ax[i].plot(x, fitted[i],
                        label=f"Fitted {dist_names[i]} distribution")
             ax[i].set_xlabel("Value")
-            ax[i].set_ylabel("F(X)")
-            ax[i].legend()
+            ax[i].grid()
+            ax[i].legend(bbox_to_anchor=(0.5, -0.1), loc='upper center')
+        ax[0].set_ylabel("F(X)")
+        # plt.tight_layout()
 
     else:
-        fig, ax = plt.subplots(sharex=True, figsize=(20, 10))
+        fig, ax = plt.subplots(sharex=True, sharey=True, figsize=(20, 10))
         ax.plot(x, f_emp, label="Empirical Distribution")
         for i in range(len(fitted)):
             ax.plot(x, fitted[i], label=f"Fitted {dist_names[i]} distribution")
         ax.set_xlabel("Value")
         ax.set_ylabel("F(X)")
-        ax.legend()
+        ax.legend(bbox_to_anchor=(0.5, -0.1), ncol=len(fitted) + 1, 
+                  loc='upper center')
+        plt.grid()
 
     if label:
         plt.suptitle(f"CDF's of {label}")

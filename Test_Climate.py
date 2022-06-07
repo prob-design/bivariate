@@ -12,7 +12,7 @@ import pack_extreme as ext
 import pack_bivariate as bivar
 
 
-file = "Climate_Data_Washington.csv"
+file = "Climate_Data_Washington_Metric.csv"
 col_names = ["POWER", "CLOUD_BROKEN"]
 col_time = "DATE_TIME"
 labels = ["Power Usage", "Percentage broken clouds"]

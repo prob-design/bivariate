@@ -67,7 +67,8 @@ def QQ_plot(var, distribution):
     ax.plot([0, 1], [0, 1], '--', color='k')
     ax.set_xlabel('Empirical quantiles')
     ax.set_ylabel('Theoretical quantiles')
-    ax.grid(linestyle='--', alpha=.3)
+    ax.set_title(f"QQ-plot of fitted {distribution} distribution")
+    ax.grid()
     plt.show()
 
 
