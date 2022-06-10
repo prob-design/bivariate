@@ -26,10 +26,11 @@ data = init.clean_dataset(data)
 
 expl.data_summary(data)
 
-expl.time_plot(data)
-expl.time_plot(data, cols=col_names[0], zoom=[1000, 2000])
+expl.time_plot(data, alpha=0.5, marker="o")
+expl.time_plot(data, zoom=[500, 1000], together=True)
 
 expl.hist_plot(data)
+expl.hist_plot(data, together=True)
 
 univ.plot_ecdf(data[col_names[0]], labels[0])
 

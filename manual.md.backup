@@ -16,6 +16,14 @@ Finally, in order to use the TU Delft colours and other default plotting styles,
 
 ## First steps: the `exploration`-subpackage
 
+**Checking your data and creating simple plots**
+
+This subpackage (currently) contains three functions. All three of them can be used on a complete DataFrame `df`, though you can optionnaly specify which columns you want to use with a list of strings `cols`. The first, `data_summary`, simply gives a description of the values in the DataFrame. It is a pass-through of pandas' `describe`-function, meaning you can pass any keyword argument pandas uses to this one as well. This is something you will see often in this manual.
+
+The `time_plot`-function creates a markerplot of the columns in your dataframe against time. By default, it creates seperate figures for every column, but you change this by setting `together=True`. You can alos focus focus on a certain segment between two rows of your dataset by supplying a list of 2 integers `zoom`. Finally, this function passes through `ax.scatter`, so any more keyword that work with that function can be used here. Examples include the markerstyle and transparency.
+
+Finally, `hist_plot` creates a histogram. The arguments are the same as `time_plot`, but without `zoom`. The pass-through is `ax.hist()`, so you could supply bins or whether to use the frequency or density.
+
 ## Fitting distributions: the `univariate`-subpackage
 
 ## Evaluating fits: the `gof`-subpackage
