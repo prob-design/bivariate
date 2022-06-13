@@ -26,6 +26,31 @@ Finally, `hist_plot` creates a histogram. The arguments are the same as `time_pl
 
 ## Fitting distributions: the `univariate`-subpackage
 
+**Single Variables**
+
+All of the functions in this subpackage take a single column of d dataframe (also known as a Series) as main argument `var`.  The first, `ecdf` simply creates an empirical cumulative distribution of the given variable. It returns the sorted values of the variable and the distribution (both as numoy-arrays) for easy plotting.
+
+The `plot_ecdf`-function plots the empirical cdf of the given variable, the empirical probablilty of exceedance (1 minus the previous value), and both of these with a vertical log scale for four plots total.
+
+The next functions extensively use a function from the 'hidden' `helpers` called `scipy-dist`. While you'll likely not interact directly with this function yourself, understanding it will make the next functins easier to use, so it is still described here.
+
+This function takes a single string as input and interprets it as one of several distributions, which is then returned as `scipy.stats`-class, which then contains a number of functions used in this sub-package. Only the first few characters of the case-independent string are interpreted, though note the exact string you supply is used as a title of label in some of the plots. Currently supported distributions are:
+
+| Distribution | String interpreted  |
+|-------|---|
+|  Normal     | norm  |
+|  Exponential     | exp  |
+|  Lognormal     | logn  |
+|  Logistic| logi|
+|Extreme Values| extr|
+
+More will be added in the future. Now, let's move on to the other functions in `pack_bivariate`.
+
+The `fit_distribution`, of course, fits a distribution to the given `var`. Thanks to the helper function, you only have to supply the name of the distribution as a string. Optionally, you can plot the distribution, including an optional `label` and any pass-throughs for `plt.plot`.
+
+Finally, the `plot-distributions`-function performs the previous function four times on a single variable, using a normal, exponential, lognormal and logistic distribution. It can also create a single figure with all four distributions by setting `seperate=False`, and passes through `plt.plot` in both cases.
+
+
 ## Evaluating fits: the `gof`-subpackage
 
 ## Extreme values: the `extreme`-subpackage

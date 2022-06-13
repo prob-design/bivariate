@@ -15,38 +15,43 @@ def ecdf(var):
     x = np.sort(var)
     n = x.size
     f = np.arange(1, n+1) / n
-    return(x, f)
+    return x, f
 
 
-def plot_ecdf(var, label=None):
+def plot_ecdf(var, label=None, **kwargs):
     """Plots the empirical cumulative distribution function of a variable
     Arguments:
         var (series): the variable
         label (str): optional label to put in the title
     """
     x, f = ecdf(var)
-    fig, ax = plt.subplots(1, 3, sharex=True, figsize=(18, 5))
+    fig, ax = plt.subplots(1, 4, sharex=True, figsize=(24, 5))
     if label:
-        plt.suptitle(f'ECDF of {label}')
+        plt.suptitle(f'ECDF of {label}', y=0.99)
 
-    ax[0].step(x, f, linewidth=4)  # Plot F(x)
+    ax[0].step(x, f, linewidth=4, **kwargs)  # Plot F(x)
     ax[0].set_title('$F(x)$')
     ax[0].set_ylabel('Cumulative Probability')
     ax[0].grid()
 
-    ax[1].step(x, 1-f, linewidth=4)  # Plot 1-F(x)
-    ax[1].set_title('1-$F(x)$')
+    ax[1].step(x, 1 - f, linewidth=4, **kwargs)  # Plot 1-F(x)
+    ax[1].set_title('$1- F(x)$')
     ax[1].grid()
 
-    ax[2].semilogy(x, f, linewidth=4)  # Plot logY 1-F(x)
-    ax[2].set_title('1-$F(x)$. Y axis log scale')
+    ax[2].semilogy(x, f, linewidth=4, **kwargs)  # Plot logY 1-F(x)
+    ax[2].set_title('$F(x)$. Y axis log scale')
     ax[2].grid()
+
+    ax[3].semilogy(x, 1 - f, linewidth=4, **kwargs)  # Plot logY 1-F(x)
+    ax[3].set_title('$1- F(x)$. Y axis log scale')
+    ax[3].grid()
     plt.show()
 
     return
 
 
-def fit_distribution(var, distribution="Normal", plot=True, label=None):
+def fit_distribution(var, distribution="Normal", plot=True, label=None, 
+                     **kwargs):
     """Fits and optionally plots a variable to a given distribution
     Arguments:
         var (series): the variable
@@ -70,8 +75,9 @@ def fit_distribution(var, distribution="Normal", plot=True, label=None):
 
     if plot:
         fig, ax = plt.subplots(figsize=(10, 10))
-        ax.plot(x, f, label="Empirical Distribution")
-        ax.plot(x, fit_cdf, label=f"Fitted {distribution} distribution")
+        ax.plot(x, f, label="Empirical Distribution", **kwargs)
+        ax.plot(x, fit_cdf, label=f"Fitted {distribution} distribution",
+                **kwargs)
         ax.set_xlabel("Value")
         ax.set_ylabel("F(X)")
         if label:
@@ -83,7 +89,7 @@ def fit_distribution(var, distribution="Normal", plot=True, label=None):
     return fit_pars, fit_cdf
 
 
-def plot_distributions(var, seperate=True, label=None):
+def plot_distributions(var, seperate=True, label=None, **kwargs):
     """Plots fitted distributions on a given variable in a single figure
     Currently uses Normal, Exponential, Lognormal, Logistic distributions
     Arguments:
@@ -104,9 +110,9 @@ def plot_distributions(var, seperate=True, label=None):
         fig, ax = plt.subplots(1, 4, sharex=True, sharey=True, figsize=(20, 6))
 
         for i in range(len(fitted)):
-            ax[i].plot(x, f_emp, label="Empirical Distribution")
+            ax[i].plot(x, f_emp, label="Empirical Distribution", **kwargs)
             ax[i].plot(x, fitted[i],
-                       label=f"Fitted {dist_names[i]} distribution")
+                       label=f"Fitted {dist_names[i]} distribution", **kwargs)
             ax[i].set_xlabel("Value")
             ax[i].grid()
             ax[i].legend(bbox_to_anchor=(0.5, -0.1), loc='upper center')
@@ -115,9 +121,10 @@ def plot_distributions(var, seperate=True, label=None):
 
     else:
         fig, ax = plt.subplots(sharex=True, sharey=True, figsize=(20, 10))
-        ax.plot(x, f_emp, label="Empirical Distribution")
+        ax.plot(x, f_emp, label="Empirical Distribution", **kwargs)
         for i in range(len(fitted)):
-            ax.plot(x, fitted[i], label=f"Fitted {dist_names[i]} distribution")
+            ax.plot(x, fitted[i], label=f"Fitted {dist_names[i]} distribution",
+                    **kwargs)
         ax.set_xlabel("Value")
         ax.set_ylabel("F(X)")
         ax.legend(bbox_to_anchor=(0.5, -0.1), ncol=len(fitted) + 1, 
