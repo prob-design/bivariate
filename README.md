@@ -10,17 +10,15 @@ The module currently contains 6 sub-packages:
 - pack_extreme: used to create extreme value analyses
 - pack_helpers: some general function used by the other sub-packages
 
-A sub-package specifically for bivariate analysis is currently being worked on in a separate branch, and further functionality could be added in the future.
-
-The files beginning with "func_" belong to an old implementation and can be removed when alle of their functionaluty is present in the "pack_"-files.
-
-There are also two test files in this directory, more could be added with different datasets.
+Currently, the user manual is being written by Jelle. Everyone is invited to proofread it and see if they can figure out the package by themselves.
 
 The current list of methods in every subpackage is given below:
 - pack_init
 	* set_TUDstyle
 	* load_dataset
 	* clean_dataset
+	* load_SURFdrive_path
+	* load_SURFdrive_file
 - pack_exploration
 	* data_summary
 	* time_plot

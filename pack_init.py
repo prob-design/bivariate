@@ -59,3 +59,25 @@ def clean_dataset(df, thres=3):
         df = df.drop(index=col_out_idx).reset_index(drop=True)
 
     return df
+
+# Automate SURFdrive link handling
+def load_SURFdrive_path(link, path, var_time, vars_used=None):
+    """Identical to load_dataset, except uses a SURFdrive public access and
+    link to a directory + a path of subfolders as input"""
+    link += "/download?path=%2F"
+    path_lst = path.split("/")
+    for s in path_lst[:-1]:
+        link += s + "%2F"
+    link = link[:-3]
+    link += "&files=" + path_lst[-1]
+    # print(link)
+    return load_dataset(link, var_time, vars_used=vars_used)
+
+
+def load_SURFdrive_file(link, var_time, vars_used=None):
+    """Identical to load_dataset, except uses a SURFdrive public access and
+    link to a single file"""
+    link += "/download"
+    # print(link)
+    return load_dataset(link, var_time, vars_used=vars_used)
+    

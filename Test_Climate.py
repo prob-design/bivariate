@@ -11,8 +11,11 @@ import pack_gof as gof
 import pack_extreme as ext
 import pack_bivariate as bivar
 
+test_file = "https://surfdrive.surf.nl/files/index.php/s/m7KhpkIRkBJm6QB"
+test_folder = "https://surfdrive.surf.nl/files/index.php/s/Wg6SWc38zn8jqVg"
+test_path = "subfolder01/subfolder02/Climate_Data_Washington_Metric.csv"
 
-file = "https://surfdrive.surf.nl/files/index.php/s/m7KhpkIRkBJm6QB/download"
+file = "https://surfdrive.surf.nl/files/index.php/s/Wg6SWc38zn8jqVg/download?path=%2Fsubfolder01%2Fsubfolder02&files=Climate_Data_Washington_Metric.csv"
 col_names = ["POWER", "CLOUD_BROKEN"]
 col_time = "DATE_TIME"
 labels = ["Power Usage", "Percentage broken clouds"]
@@ -21,7 +24,7 @@ ev_frequency = "Weekly"
 
 TU_color = init.set_TUDstyle()
 
-data = init.load_dataset(file, col_time, col_names)
+data = init.load_SURFdrive_path(test_folder, test_path, col_time, col_names)
 data = init.clean_dataset(data)
 
 # expl.data_summary(data)

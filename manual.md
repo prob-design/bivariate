@@ -14,6 +14,8 @@ Speaking of which, use the `clean_dataset` function of the same package to remov
 
 Finally, in order to use the TU Delft colours and other default plotting styles, simply call the `set_TUDstyle`-function without any arguments.
 
+If you've been given SURFdrive links instead of files, you can use `load_SURFdrive_file` and `load_SURFdrive_path` instead. Use the first one if your link leads directly to a file, and the second one if it leads to a directory. In the latter case, you also need to supply a path to the file you want. For example, to access a file `filename.csv` in the top-folder, simply supply that name as a second argument. If it's located in a folder, use `folder/filename.csv`. Both of these functions also use the column arguments that `load_dataset` uses.
+
 ## First steps: the `exploration`-subpackage
 
 **Checking your data and creating simple plots**
