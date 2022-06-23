@@ -64,7 +64,7 @@ The `aic_bic_fit`-function can be used in much the same way as some of the funct
 
 The `QQ-plot`-function also uses the same arguments as the univariate functions. It creates a plot of the fitted quantiles against the empirical ones (which is the pass-through). Of course, if the fit is good, this should be e nearly straight line from the origin to the point (1,1), which is als plotted to compare.
 
-Finally, the `quantile-compare`-function. Once again it takes a Series and a distribution as argument, and now a single quantile or list of qunatiles too. It returns both the fitted and empirical value of the variable belonging to this quantile, as well as the quantile of the fitted distribution belonging to the empirical value of the original quantile. If this sounds confusing, consider it as a single point on the QQ plot.
+Finally, the `quantile-compare`-function. Once again it takes a Series and a distribution as argument, and now a single quantile or list of qunatiles too. It returns both the fitted and empirical value of the variable belonging to this quantile, as well as the quantile of the fitted distribution belonging to the empirical value of the original quantile. If this sounds confusing, consider it as a s
 
 ## Extreme values: the `extreme`-subpackage
 

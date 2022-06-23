@@ -35,17 +35,17 @@ data = init.clean_dataset(data)
 # expl.hist_plot(data)
 # expl.hist_plot(data, together=True)
 
-univ.plot_ecdf(data[col_names[0]], labels[0], color="red")
+# univ.plot_ecdf(data[col_names[0]], labels[0], color="red")
 
-univ.plot_distributions(data[col_names[0]], label=labels[0], linestyle="--")
+# univ.plot_distributions(data[col_names[0]], label=labels[0], linestyle="--")
 
-univ.plot_distributions(data[col_names[0]], seperate=False, label=labels[0])
+# univ.plot_distributions(data[col_names[0]], seperate=False, label=labels[0])
 
 # print(gof.aic_bic_fit(data[col_names[0]], test_dist))
 
-# gof.QQ_plot(data[col_names[0]], test_dist)
+gof.QQ_plot(data[col_names[0]], test_dist, color="red")
 
-# print(gof.quantile_compare(data[col_names[0]], test_dist, 0.90))
+print(gof.quantile_compare(data[col_names[0]], test_dist, (0.90, 0.95, 0.99)))
 
 # extreme = ext.create_ev(data, ev_frequency)
 

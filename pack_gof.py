@@ -12,7 +12,7 @@ import pack_univariate as univ
 import pack_helpers as helpers
 
 
-def aic_bic(logL, k, n):
+def aic_bic(pdf, k, n):
     """Calculates the AIC- and BIC-value of a fitted distribution
     Arguments:
         LogL (float): The sum of the log of the pdf of the fitted distribution
@@ -21,7 +21,8 @@ def aic_bic(logL, k, n):
     Returns:
         The AIC- and BIC-scores
     """
-
+    
+    logL = np.sum(np.log10(pdf))
     AIC = 2*k - 2*logL
     BIC = k*np.log(n) - 2*logL
 
@@ -39,7 +40,7 @@ def aic_bic_fit(var, distribution):
     pars, cdf = univ.fit_distribution(var, distribution, plot=False)
     dist = helpers.scipy_dist(distribution)
 
-    logL = np.sum(dist.logpdf(var, *pars))
+    logL = dist.pdf(var, *pars)
     k = len(pars)
     n = len(var)
 
@@ -48,7 +49,7 @@ def aic_bic_fit(var, distribution):
     return AIC, BIC
 
 
-def QQ_plot(var, distribution):
+def QQ_plot(var, distribution, **kwargs):
     """Creates a QQ-plot of a given variable and distribution
     Arguments:
         var (series): the variable
@@ -63,8 +64,8 @@ def QQ_plot(var, distribution):
     f_Q = dist.cdf(var_sorted, *pars)
 
     fig, ax = plt.subplots(figsize=(14, 8))
-    ax.plot(ecdf_Q, f_Q)
     ax.plot([0, 1], [0, 1], '--', color='k')
+    ax.plot(ecdf_Q, f_Q, **kwargs)
     ax.set_xlabel('Empirical quantiles')
     ax.set_ylabel('Theoretical quantiles')
     ax.set_title(f"QQ-plot of fitted {distribution} distribution")
@@ -86,6 +87,8 @@ def quantile_compare(var, distribution, quantile):
     x_emp = var.quantile(quantile)
     pars, cdf = univ.fit_distribution(var, distribution, plot=False)
     dist = helpers.scipy_dist(distribution)
-    x_fitted = dist.ppf(quantile)
+    x_fitted = dist.ppf(quantile, *pars)
     q_fitted = dist.cdf(x_emp, *pars)
+    if type(quantile) == list or tuple:
+        x_emp = x_emp.to_numpy()
     return x_emp, x_fitted, q_fitted
