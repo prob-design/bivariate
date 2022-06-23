@@ -26,7 +26,7 @@ def create_ev(df, period):
     return extremes
 
 
-def fit_ev(ex_var, plot=True, label=None):
+def fit_ev(ex_var, plot=True, label=None, **kwargs):
     """Fits an extreme value distribution to a variable of extreme values, and
     optionally plots it.
     Arguments:
@@ -40,7 +40,7 @@ def fit_ev(ex_var, plot=True, label=None):
     univariate module
     """
     fit_pars, fit_cdf = univ.fit_distribution(ex_var, distribution="Extreme",
-                                              plot=plot, label=label)
+                                              plot=plot, label=label, **kwargs)
     return fit_pars, fit_cdf
 
 
@@ -58,11 +58,11 @@ def AIC_BIC_ev(ex_var):
     return AIC, BIC
 
 
-def QQ_plot_ev(ex_var):
+def QQ_plot_ev(ex_var, **kwargs):
     """Creates a QQ-plot of given extreme values and distribution
     Arguments:
         ex_var (series): the variable of extreme values
     Note: this function simply passes through the QQ_plot() of the
     univariate module
     """
-    gof.QQ_plot(ex_var, "Extreme")
+    gof.QQ_plot(ex_var, "Extreme", **kwargs)

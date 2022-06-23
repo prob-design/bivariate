@@ -80,35 +80,7 @@ def bivar_fit(df, vars_used, plot=True, labels=None, N=None):
 
     # df_r_norm.head()
     if plot:
-        plt.figure(figsize=(6, 6))
-        plt.scatter(r_norm[:, 0], r_norm[:, 1])  # Bivariate normal simulations
-        if labels:
-            plt.xlabel(labels[0])
-            plt.ylabel(labels[1])
-        plt.show()
-
-        h1 = sns.jointplot(data=df_r_norm, x=vars_used[0], y=vars_used[1])
-        if labels:
-            h1.set_axis_labels(labels[0], labels[1])
-        h1.figure.tight_layout()
-        h1.fig.suptitle('Bivariate fit')
-        h1.fig.subplots_adjust(top=0.95)
-
-        g = sns.displot(data=df_r_norm, x=vars_used[0], y=vars_used[1],
-                        kind='kde')
-        if labels:
-            g.set_axis_labels(labels[0], labels[1])
-        g.figure.tight_layout()
-
-        plt.figure(figsize=(10, 10))
-        plt.scatter(dat[vars_used[0]], dat[vars_used[1]],
-                    label='Empirical Data')
-        plt.scatter(r_norm[:, 0], r_norm[:, 1], label='Bivariate Normal Data')
-        if labels:
-            plt.xlabel(labels[0])
-            plt.ylabel(labels[1])
-        plt.legend()
-        plt.show()
+        bivar_plot(df_r_norm, vars_used, labels=labels)
 
     return df_r_norm
 

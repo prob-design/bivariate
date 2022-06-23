@@ -64,8 +64,36 @@ The `aic_bic_fit`-function can be used in much the same way as some of the funct
 
 The `QQ-plot`-function also uses the same arguments as the univariate functions. It creates a plot of the fitted quantiles against the empirical ones (which is the pass-through). Of course, if the fit is good, this should be e nearly straight line from the origin to the point (1,1), which is als plotted to compare.
 
-Finally, the `quantile-compare`-function. Once again it takes a Series and a distribution as argument, and now a single quantile or list of qunatiles too. It returns both the fitted and empirical value of the variable belonging to this quantile, as well as the quantile of the fitted distribution belonging to the empirical value of the original quantile. If this sounds confusing, consider it as a s
+Finally, the `quantile-compare`-function. Once again it takes a Series and a distribution as argument, and now a single quantile or list of qunatiles too. It returns both the fitted and empirical value of the variable belonging to this quantile, as well as the quantile of the fitted distribution belonging to the empirical value of the original quantile. If this sounds confusing, consider it as a single point on the QQ-plot.
 
 ## Extreme values: the `extreme`-subpackage
+**Periodical Peaks**
+
+This package is used to do extreme value analyses on existing datasets. Currently, it only supports `scipy`'s General Extreme Value distribution. In fact, three of the four functions are just previously covered functions that take a distribution as argument, with the value of this string set to `"Extreme`. The only argument needed is then, of course, a Series of extreme values. You can generate this (an entire DataFrame, in fact!) with the `create_ev`-function.
+
+This function takes a DataFrame and a string `period` as arguments, and returns a new DataFrame with the maximum values of the original one, evaluated on the user-defined period. This works through pandas' `resample`-method, meaning any string that defines a period for pandas works here too. Some examples are:
+
+|String|Period|
+|---|---|
+|`"D"`|Daily|
+|`"W"`|Weekly|
+|`"M"`|Monthly|
+|`"A"`/`"Y"`|Yearly|
+
+As the way this package deals with distributions is not really different to the way the `gof`- and `univariate`-subpackages deal with them, the functions of those two are compatible with the resulting extreme-values dataframe.
 
 ## Two variables: the `bivariate`-subpackage
+**The actual name of the package**
+
+Finally, the bivariate analysis functions. The first one, `bivar_plot`, corresponds to the plotting functions in the `exploration`-subpackage. It takes a dataframe and a list of two strings of columns to use, and generates three different plots:
+- A simple marker plot of all the datapoints
+- The same, but with histograms of the two variables on the axes.
+- A 2D density plot with iso-lines, which can take some time to run.
+
+Currently, none of the three plots use pass-through arguments, though you can supply axis labels.
+
+The second function, `cov_cor`, uses the same arguments as `bivar_plot`. It generates a covariance matrix and the Pearson's correlation coefficient between the two supplied variables.
+
+The `bivar_fit`-function corresponds to the fitting of distributions in the `univariate`-subpackage. Currently, it only supports the Bivariate Normal distribution, and does not return the parameters but rather a 'draw' of the distribution, in the form of a DataFrame. The number of data points in this draw, `N`, is equal to the number of rows in the supplied dataframe by default, but you can give it a different value if you want. This function also plots the generated draw using the `bivar_plot` function, unless you supply `plot=False`.
+
+Finally, the `and_or_probabilities` again uses a dataframe with two specified columns, plus a quantile per column, to compute the probability of both (AND) or one of the two (OR) variables being larger than its given quantile. These two probabilities are returned by the function, and by default a plot is also generated visualising both the AND and OR-scenarios. Note that this function can also be used with the output of `bivar_fit`.
