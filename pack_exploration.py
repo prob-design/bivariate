@@ -25,41 +25,33 @@ def time_plot(df, cols=None, together=False, zoom=None, **kwargs):
         df (dataframe): the dataframe
         cols (list of str): the cols to plot. If None (default), plots them all
         together (bool): plot everything in one figure. Default False
-        zoom: (2-list of int): optional domain for zoomed-in plot
+        zoom: (2-tuple of int): optional domain for zoomed-in plot
         **kwargs: optional arguments for ax.scatter()
+    Returns:
+        Figure and axes.
     """
     time_col = helpers.find_datetime_col(df)
+
     if not cols:
         cols = list(df.columns)
-    if not zoom:
-        zoom = [0, len(df)]
-    
-    if together:
-        fig, ax = plt.subplots(figsize=(10, 10), sharex=True)
-        ax.set_title(cols)
-        for col_name in df:
-            if col_name == time_col or col_name not in cols:
-                continue
-            ax.scatter(time_col, col_name, data=df.iloc[zoom[0]:zoom[1]],
-                       label = col_name, **kwargs)
-        ax.grid(True)
-        ax.set(xlabel='Date / Time')
-        ax.legend()
-        fig.autofmt_xdate()
-        plt.show()
-    
+        x = None
+        y = None
+
     else:
-        for col_name in df:
-            if col_name == time_col or col_name not in cols:
-                continue
-            fig, ax = plt.subplots(figsize=(10, 10), sharex=True)
-            ax.scatter(time_col, col_name, data=df.iloc[zoom[0]:zoom[1]], **kwargs)
-            ax.set_title(col_name)
-            ax.grid(True)
-            ax.set(xlabel='Date / Time', ylabel=col_name)
-            fig.autofmt_xdate()
-            plt.show()
-            
+        x = time_col
+        y = cols
+
+    figsize = (10, 10) if together else (10, 5*len(cols))
+   
+    ax = df.plot(x=x,
+                 y=y,
+                 xlim=zoom,
+                 subplots=not together,
+                 sharex=True,
+                 figsize=figsize,
+                 **kwargs)
+
+    return plt.gcf(), ax
 
 def hist_plot(df, cols=None, together=False, **kwargs):
     """Create a histogram of the given columns in a dataframe
