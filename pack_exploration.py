@@ -33,18 +33,12 @@ def time_plot(df, cols=None, together=False, zoom=None, **kwargs):
     time_col = helpers.find_datetime_col(df)
 
     if not cols:
-        cols = list(df.columns)
-        x = None
-        y = None
-
-    else:
-        x = time_col
-        y = cols
+        cols = list(df.drop(columns=time_col).columns)
 
     figsize = (10, 10) if together else (10, 5*len(cols))
    
-    ax = df.plot(x=x,
-                 y=y,
+    ax = df.plot(x=time_col,
+                 y=cols,
                  xlim=zoom,
                  subplots=not together,
                  sharex=True,
