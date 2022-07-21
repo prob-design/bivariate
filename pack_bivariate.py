@@ -30,12 +30,12 @@ def bivar_plot(df, vars_used, labels=None):
     h = sns.jointplot(data=df, x=vars_used[0], y=vars_used[1])
     if labels:
         h.set_axis_labels(labels[0], labels[1])
-    h.figure.tight_layout()
+    plt.gcf().tight_layout()
 
     g = sns.displot(data=df, x=vars_used[0], y=vars_used[1], kind='kde')
     if labels:
         g.set_axis_labels(labels[0], labels[1])
-    g.figure.tight_layout()
+    plt.gcf().tight_layout()
 
     plt.show()
 
