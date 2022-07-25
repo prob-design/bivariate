@@ -8,8 +8,8 @@ Created on Fri May 27 16:14:15 2022
 import numpy as np
 import matplotlib.pyplot as plt
 
-import pack_univariate as univ
-import pack_helpers as helpers
+from . import pack_univariate as univ
+from . import pack_helpers as helpers
 
 
 def aic_bic(pdf, k, n):
