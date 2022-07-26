@@ -47,6 +47,25 @@ The current list of methods in every subpackage is given below:
 	* find_datetime
 	* scipy_dist
 
+## Installing the package
+To pull the bivariate package from the gitlab repository, copy-paste the following code:
+
+`!git clone https://gitlab.tudelft.nl/mude/bivariate_package.git`
+
+Then, import the different subpackages as follows:
+`from bivariate_package import pack_init`
+
+`from bivariate_package import pack_exploration`
+
+`from bivariate_package import pack_univariate`
+
+`from bivariate_package import pack_gof`
+
+`from bivariate_package import pack_extreme`
+
+`from bivariate_package import pack_bivariate`
+
+
 ## Starting point: the `init`-subpackage
 **Loading and cleaning a dataset**
 
