@@ -7,7 +7,7 @@ Created on Thu May 26 13:35:02 2022
 
 import matplotlib.pyplot as plt
 import numpy as np
-import pack_helpers as helpers
+from . import pack_helpers as helpers
 
 
 def ecdf(var):

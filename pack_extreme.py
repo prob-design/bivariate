@@ -5,9 +5,9 @@ Created on Mon May 30 15:56:47 2022
 @author: jelle
 """
 
-import pack_helpers as helpers
-import pack_univariate as univ
-import pack_gof as gof
+from . import pack_helpers as helpers
+from . import pack_univariate as univ
+from . import pack_gof as gof
 
 
 def create_ev(df, period):
