@@ -1,3 +1,4 @@
 *.md.backup
 .ipynb_checkpoints/
 data_waves_currents.csv
+__pycache__/
