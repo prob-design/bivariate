@@ -7,57 +7,58 @@ import helpers
 from IPython.display import display
 
 
-class BivariateDataset():
-    def __init__(self, df, cols=None):
-        self.df = df
-        self._time_col = helpers.find_datetime_col(self.df)
-        self._cols = list(df.drop(columns=self._time_col).columns)
+class Dataset():
+    def __init__(self, dataframe, cols=None):
+        self.dataframe = dataframe
+        self._time_col = helpers.find_datetime_col(self.dataframe)
+        self._cols = list(dataframe.drop(columns=self._time_col).columns)
 
 
     @classmethod
-    def from_filename(cls, filename, var_time, cols=None):
-        df = pd.read_csv(filename, parse_dates=[var_time])
+    def import_from_filename(cls, filename, var_time, cols=None):
+        dataframe = pd.read_csv(filename, parse_dates=[var_time])
         if cols:
             cols_used = [var_time] + cols
-            df = df[cols_used]
-        return cls(df, cols)
+            dataframe = dataframe[cols_used]
+        return cls(dataframe, cols)
 
 
     @classmethod
-    def from_surfdrive_path(cls, link, path, var_time, cols=None):
+    def import_from_surfdrive_path(cls, link, path, var_time, cols=None):
         link += r'/download?path=%2F'
         path_lst = path.split('/')
         for s in path_lst[:-1]:
             link += s + "%2F"
         link = link[:-3]
         link += "&files=" + path_lst[-1]
-        return cls.from_filename(link, var_time, cols)
+        return cls.import_from_filename(link, var_time, cols)
 
 
     @classmethod
-    def from_surfdrive_file(cls, link, var_time, cols=None):
+    def import_from_surfdrive_file(cls, link, var_time, cols=None):
         link += "/download"
         return cls.from_filename(link, var_time, cols)
 
         
-    def clean_dataset(self, threshold=3):
-        df = self.df.dropna().reset_index(drop=True)
+    def clean_dataset(self, z_score_threshold=5):
+        dataframe = self.dataframe.dropna().reset_index(drop=True)
 
         for col_name in self._cols:
-            col = df[col_name]
+            col = dataframe[col_name]
             col_mean = col.mean()
             col_std = col.std()
-            z = (col - col_mean) / col_std
-            col_out_idx = col[np.abs(z) > threshold].index.values.tolist()
-            df = df.drop(index=col_out_idx).reset_index(drop=True)
+            z_score = (col - col_mean) / col_std
+            col_out_idx = (
+                col[np.abs(z_score) > z_score_threshold].index.values.tolist())
+            dataframe = dataframe.drop(index=col_out_idx).reset_index(drop=True)
         
-        self.df = df
+        self.dataframe = dataframe
 
         
     def time_plot(self, together=False, zoom=None, **kwargs):
         figsize = (10, 10) if together else (10, 5*len(self._cols))
 
-        ax = self.df.plot(x=self._time_col,
+        ax = self.dataframe.plot(x=self._time_col,
                           y=self._cols,
                           xlim=zoom,
                           subplots=not together,
@@ -72,13 +73,13 @@ class BivariateDataset():
 
 
     def data_summary(self):
-        display(self.df[self._cols].describe())
+        display(self.dataframe[self._cols].describe())
 
 
     def hist_plot(self, together=False, **kwargs):
         figsize = (10, 10) if together else (10, 5*len(self._cols))
 
-        ax = self.df.plot(y=self._cols,
+        ax = self.dataframe.plot(y=self._cols,
                           kind='hist',
                           subplots=not together,
                           figsize=figsize,
