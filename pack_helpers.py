@@ -1,8 +1,5 @@
 # -*- coding: utf-8 -*-
 """
-Robert note july 29: leave helpers as is for now, in future these should be methods in another class.
-find_datetime_col should be in the data class
-scipy_dist will be taken care of in the distribution class
 Created on Thu May 26 13:39:11 2022
 
 @author: jelle
