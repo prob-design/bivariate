@@ -1,6 +1,8 @@
 import pandas as pd
 import numpy as np
 import matplotlib.pyplot as plt
+import seaborn as sns
+import scipy.stats as st
 
 import helpers
 
@@ -37,7 +39,7 @@ class Dataset():
     @classmethod
     def import_from_surfdrive_file(cls, link, var_time, cols=None):
         link += "/download"
-        return cls.from_filename(link, var_time, cols)
+        return cls.import_from_filename(link, var_time, cols)
 
         
     def clean_dataset(self, z_score_threshold=5):
@@ -89,3 +91,65 @@ class Dataset():
                           **kwargs)
 
         return plt.gcf(), ax
+
+
+    # Univariate fit
+        
+
+    def plot_ecdf(self):
+        pass
+
+
+    def fit_distribution(self):
+        pass
+        
+
+    def plot_distributions(self):
+        pass
+    
+
+    # Extreme Value Analysis
+    
+
+    def create_ev(self):
+        pass
+
+
+    def fit_ev(self):
+        pass
+
+    
+    def QQ_plot(self):
+        pass
+
+    
+    # Bivariate fit
+    
+
+    def bivar_plot(self):
+        pass
+
+
+    def cov_cor(self):
+        pass
+    
+    
+    def bivar_fit(self):
+        pass
+    
+    
+    def and_or_probabilities(self):
+        pass
+    
+
+    # Static methods
+    
+    
+    @staticmethod
+    def aic_bic():
+        pass
+        
+    
+    @staticmethod
+    def ecdf():
+        pass
