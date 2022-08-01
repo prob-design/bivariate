@@ -168,5 +168,18 @@ class Dataset():
         
     
     @staticmethod
-    def ecdf():
-        pass
+    def ecdf(var):
+        """
+        Compute the empirical cumulative distribution of a variable.
+
+        Args:
+            var (array): array containing the values of the variable.
+
+        Returns:
+            x (array): array containing the sorted values of the variable.
+            f (array): array containing the probabilities.
+        """
+        x = np.sort(var)
+        n = x.size
+        f = np.arange(1, n+1)/n
+        return x, f
