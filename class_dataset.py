@@ -106,16 +106,105 @@ class Dataset():
     # Univariate fit
         
 
-    def plot_ecdf(self):
-        pass
+    def plot_ecdf(self, var, label=None, **kwargs):
+        x, f = self.ecdf(self.dataframe[var])
+        
+        fig, ax = plt.subplots(1, 4, sharex=True, figsize=(24, 5))
+        if label:
+            plt.suptitle(f'ECDF of {label}', y=0.99)
+
+        ax[0].step(x, f, linewidth=4, **kwargs)  # Plot F(x)
+        ax[0].set_title('$F(x)$')
+        ax[0].set_ylabel('Cumulative Probability')
+        ax[0].grid()
+
+        ax[1].step(x, 1 - f, linewidth=4, **kwargs)  # Plot 1-F(x)
+        ax[1].set_title('$1- F(x)$')
+        ax[1].grid()
+
+        ax[2].semilogy(x, f, linewidth=4, **kwargs)  # Plot logY 1-F(x)
+        ax[2].set_title('$F(x)$. Y axis log scale')
+        ax[2].grid()
+
+        ax[3].semilogy(x, 1 - f, linewidth=4, **kwargs)  # Plot logY 1-F(x)
+        ax[3].set_title('$1- F(x)$. Y axis log scale')
+        ax[3].grid()
+        plt.show()
+        
+        return plt.gcf(), ax
 
 
-    def fit_distribution(self):
-        pass
+    def fit_distribution(self, var, distribution, plot=True, label=None, 
+                         **kwargs):
+        x, f = self.ecdf(self.dataframe[var])
+
+        dist = self.scipy_dist(distribution)
+
+        fit_pars = dist.fit(self.dataframe[var])
+        fit_cdf = dist.cdf(x, *fit_pars)
+
+        if plot:
+            fig, ax = plt.subplots(figsize=(10, 10))
+            ax.plot(x, f, label="Empirical Distribution", **kwargs)
+            ax.plot(x, fit_cdf, label=f"Fitted {distribution} distribution",
+                    **kwargs)
+            ax.set_xlabel("Value")
+            ax.set_ylabel("F(X)")
+            if label:
+                plt.suptitle(f'CDF of {label}')
+            ax.legend()
+            ax.grid()
+            plt.show()
+
+        return fit_pars, fit_cdf # Should this also return the plot?
         
 
-    def plot_distributions(self):
-        pass
+    def plot_distributions(self, var, together=False, label=None, **kwargs):
+        """Plots fitted distributions on a given variable in a single figure
+        Currently uses Normal, Exponential, Lognormal, Logistic distributions
+        Arguments:
+            var (series): the variable
+            separate (bool): whether to plot the distributions in seperate plots
+            label (str): optional label to put in the title of the plot
+        """
+        x, f_emp = self.ecdf(self.dataframe[var])
+        f_norm = self.fit_distribution(var, "Normal", plot=False)[1]
+        f_exp = self.fit_distribution(var, "Exponential", plot=False)[1]
+        f_lognorm = self.fit_distribution(var, "Lognormal", plot=False)[1]
+        f_logit = self.fit_distribution(var, "Logistic", plot=False)[1]
+
+        fitted = [f_norm, f_exp, f_lognorm, f_logit]
+        dist_names = ["Normal", "Exponential", "Lognormal", "Logistic"]
+
+        if not together:
+            fig, ax = plt.subplots(1, 4, sharex=True, sharey=True, figsize=(20, 6))
+
+            for i in range(len(fitted)):
+                ax[i].plot(x, f_emp, label="Empirical Distribution", **kwargs)
+                ax[i].plot(x, fitted[i],
+                           label=f"Fitted {dist_names[i]} distribution", **kwargs)
+                ax[i].set_xlabel("Value")
+                ax[i].grid()
+                ax[i].legend(bbox_to_anchor=(0.5, -0.1), loc='upper center')
+            ax[0].set_ylabel("F(X)")
+            # plt.tight_layout()
+
+        else:
+            fig, ax = plt.subplots(sharex=True, sharey=True, figsize=(20, 10))
+            ax.plot(x, f_emp, label="Empirical Distribution", **kwargs)
+            for i in range(len(fitted)):
+                ax.plot(x, fitted[i], label=f"Fitted {dist_names[i]} distribution",
+                        **kwargs)
+            ax.set_xlabel("Value")
+            ax.set_ylabel("F(X)")
+            ax.legend(bbox_to_anchor=(0.5, -0.1), ncol=len(fitted) + 1, 
+                      loc='upper center')
+            plt.grid()
+
+        if label:
+            plt.suptitle(f"CDF's of {label}")
+
+        plt.show()
     
 
     # Extreme Value Analysis
@@ -183,3 +272,33 @@ class Dataset():
         n = x.size
         f = np.arange(1, n+1)/n
         return x, f
+    
+    @staticmethod
+    def scipy_dist(distribution):
+        "Turn the name of a distribution into the scipy class"
+        if distribution.lower()[:4] == "norm":
+            dist = st.norm
+        if distribution.lower()[:3] == "exp":
+            dist = st.expon
+        if distribution.lower()[:4] == "logn":
+            dist = st.lognorm
+        if distribution.lower()[:4] == "logi":
+            dist = st.logistic
+        if distribution.lower()[:4] == "extr":
+            dist = st.genextreme
+        else:
+            Exception("Distribtution not found!")
+        return dist
+    
+    @staticmethod
+    def set_TUDstyle():
+        TUcolor = {"cyan": "#00A6D6", "darkgreen": "#009B77", "purple": "#6F1D77",
+                   "darkred": "#A50034", "darkblue": "#0C2340",
+                   "orange": "#EC6842", "green": "#6CC24A",
+                   "lightcyan": "#00B8C8", "red": "#E03C31", "pink": "#EF60A3",
+                   "yellow": "#FFB81C", "blue": "#0076C2"}
+        plt.rcParams.update({'axes.prop_cycle': plt.cycler(color=TUcolor.values()),
+                             'font.size': 16, "lines.linewidth": 4})
+        return TUcolor
+    
+    
