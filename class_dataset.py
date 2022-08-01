@@ -12,7 +12,7 @@ from IPython.display import display
 class Dataset():
     def __init__(self, dataframe, cols=None):
         self.dataframe = dataframe
-        self._time_col = helpers.find_datetime_col(self.dataframe)
+        self._time_col = self.find_datetime_col(self.dataframe)
         self._cols = list(dataframe.drop(columns=self._time_col).columns)
 
 
@@ -143,6 +143,13 @@ class Dataset():
     
 
     # Static methods
+
+    
+    @staticmethod
+    def find_datetime_col(dataframe):
+        for col in dataframe:
+            if pd.api.types.is_datetime64_any_dtype(dataframe[col]):
+                return col
     
     
     @staticmethod
