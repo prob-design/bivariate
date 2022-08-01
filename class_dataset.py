@@ -10,6 +10,10 @@ from IPython.display import display
 
 
 class Dataset():
+
+    # Constructors
+
+    
     def __init__(self, dataframe, cols=None):
         self.dataframe = dataframe
         self._time_col = self.find_datetime_col(self.dataframe)
@@ -41,6 +45,9 @@ class Dataset():
         link += "/download"
         return cls.import_from_filename(link, var_time, cols)
 
+
+    # Cleaning dataset
+
         
     def clean_dataset(self, z_score_threshold=5):
         dataframe = self.dataframe.dropna().reset_index(drop=True)
@@ -56,7 +63,14 @@ class Dataset():
         
         self.dataframe = dataframe
 
+
+    # Data exploration
+
+
+    def data_summary(self):
+        display(self.dataframe[self._cols].describe())
         
+
     def time_plot(self, together=False, zoom=None, **kwargs):
         figsize = (10, 10) if together else (10, 5*len(self._cols))
 
@@ -72,10 +86,6 @@ class Dataset():
                           **kwargs)
         
         return plt.gcf(), ax
-
-
-    def data_summary(self):
-        display(self.dataframe[self._cols].describe())
 
 
     def hist_plot(self, together=False, **kwargs):
