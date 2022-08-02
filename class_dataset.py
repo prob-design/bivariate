@@ -160,8 +160,10 @@ class Dataset():
         
 
     def plot_distributions(self, var, together=False, label=None, **kwargs):
-        """Plots fitted distributions on a given variable in a single figure
+        """
+        Plots fitted distributions on a given variable in a single figure
         Currently uses Normal, Exponential, Lognormal, Logistic distributions
+
         Arguments:
             var (series): the variable
             separate (bool): whether to plot the distributions in seperate plots
@@ -275,7 +277,9 @@ class Dataset():
     
     @staticmethod
     def scipy_dist(distribution):
-        "Turn the name of a distribution into the scipy class"
+        """
+        Turn the name of a distribution into the scipy class
+        """
         if distribution.lower()[:4] == "norm":
             dist = st.norm
         if distribution.lower()[:3] == "exp":
@@ -292,11 +296,18 @@ class Dataset():
     
     @staticmethod
     def set_TUDstyle():
-        TUcolor = {"cyan": "#00A6D6", "darkgreen": "#009B77", "purple": "#6F1D77",
-                   "darkred": "#A50034", "darkblue": "#0C2340",
-                   "orange": "#EC6842", "green": "#6CC24A",
-                   "lightcyan": "#00B8C8", "red": "#E03C31", "pink": "#EF60A3",
-                   "yellow": "#FFB81C", "blue": "#0076C2"}
+        TUcolor = {"cyan": "#00A6D6",
+                   "darkgreen": "#009B77",
+                   "purple": "#6F1D77",
+                   "darkred": "#A50034",
+                   "darkblue": "#0C2340",
+                   "orange": "#EC6842",
+                   "green": "#6CC24A",
+                   "lightcyan": "#00B8C8",
+                   "red": "#E03C31",
+                   "pink": "#EF60A3",
+                   "yellow": "#FFB81C",
+                   "blue": "#0076C2"}
         plt.rcParams.update({'axes.prop_cycle': plt.cycler(color=TUcolor.values()),
                              'font.size': 16, "lines.linewidth": 4})
         return TUcolor
