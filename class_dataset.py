@@ -4,8 +4,6 @@ import matplotlib.pyplot as plt
 import seaborn as sns
 import scipy.stats as st
 
-import helpers
-
 from IPython.display import display
 
 
@@ -18,6 +16,8 @@ class Dataset():
         self.dataframe = dataframe
         self._time_col = self.find_datetime_col(self.dataframe)
         self._cols = list(dataframe.drop(columns=self._time_col).columns)
+        
+        self.extremes = None
 
 
     @classmethod
@@ -136,6 +136,7 @@ class Dataset():
 
     def fit_distribution(self, var, distribution, plot=True, label=None, 
                          **kwargs):
+
         x, f = self.ecdf(self.dataframe[var])
 
         dist = self.scipy_dist(distribution)
@@ -212,8 +213,11 @@ class Dataset():
     # Extreme Value Analysis
     
 
-    def create_ev(self):
-        pass
+    def create_ev(self, period):
+        self.extremes = self.dataframe.resample(period[0].upper(),
+                                                on=self._time_col)\
+                                                .max().reset_index(drop=True)
+        return self.extremes
 
 
     def fit_ev(self):
