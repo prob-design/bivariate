@@ -220,8 +220,30 @@ class Dataset():
         return self.extremes
 
 
-    def fit_ev(self):
-        pass
+    # TODO: this is a lot of duplicate code. We should find a way to make this 
+    # and the other fit methods more general and compact.
+    def fit_ev(self, var, plot=True, label=None, **kwargs):
+        x, f = self.ecdf(self.extremes[var])
+        
+        dist = self.scipy_dist('Extreme')
+        
+        fit_pars = dist.fit(self.extremes[var])
+        fit_cdf = dist.cdf(x, *fit_pars)
+
+        if plot:
+            fig, ax = plt.subplots(figsize=(10, 10))
+            ax.plot(x, f, label="Empirical Distribution", **kwargs)
+            ax.plot(x, fit_cdf, label=f"Fitted extreme distribution",
+                    **kwargs)
+            ax.set_xlabel("Value")
+            ax.set_ylabel("F(X)")
+            if label:
+                plt.suptitle(f'CDF of {label}')
+            ax.legend()
+            ax.grid()
+            plt.show()
+
+        return fit_pars, fit_cdf
 
     
     def QQ_plot(self):
