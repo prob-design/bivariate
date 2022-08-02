@@ -220,8 +220,18 @@ class Dataset():
         return self.extremes
 
 
-    def fit_ev(self):
-        pass
+    def fit_ev(self, plot=False, label=None, **kwargs):
+        if self.extremes is None:
+            Exception('Please calculate extreme values first!')
+        
+        fit_pars, fit_cdf = self.fit_distribution(self.extremes,
+                                                  distribution='Extreme',
+                                                  plot=plot,
+                                                  label=label,
+                                                  **kwargs)
+
+        return fit_pars, fit_cdf
+
 
     
     def QQ_plot(self):
