@@ -1,3 +1,4 @@
+from statistics import covariance
 import pandas as pd
 import numpy as np
 import matplotlib.pyplot as plt
@@ -311,8 +312,10 @@ class Dataset():
         plt.show()
 
 
-    def cov_cor(self):
-        pass
+    def cov_cor(self, vars):
+        cov = np.cov(self.dataframe[vars[0]], self.dataframe[vars[1]])
+        corr, _ = st.pearsonr(self.dataframe[vars[0]], self.dataframe[vars[1]])
+        return cov, corr
     
     
     def and_or_probabilities(self):
