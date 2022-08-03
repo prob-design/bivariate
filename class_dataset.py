@@ -222,7 +222,7 @@ class Dataset():
 
     # TODO: this is a lot of duplicate code. We should find a way to make this 
     # and the other fit methods more general and compact.
-    def fit_ev(self, var, plot=True, label=None, **kwargs):
+    def fit_ev(self, var, plot=True, label=None, **kwargs):        
         x, f = self.ecdf(self.extremes[var])
         
         dist = self.scipy_dist('Extreme')
@@ -246,8 +246,23 @@ class Dataset():
         return fit_pars, fit_cdf
 
     
-    def QQ_plot(self):
-        pass
+    def QQ_plot(self, var, distribution, **kwargs):
+        pars, cdf = self.fit_distribution(var, distribution, plot=False)
+        dist = self.scipy_dist(distribution)
+        n = len(self.dataframe[var])
+        var_sorted = np.sort(self.dataframe[var])
+
+        ecdf_Q = np.linspace(1, n, n)/(n + 1)
+        f_Q = dist.cdf(var_sorted, *pars)
+
+        fig, ax = plt.subplots(figsize=(14, 8))
+        ax.plot([0, 1], [0, 1], '--', color='k')
+        ax.plot(ecdf_Q, f_Q, **kwargs)
+        ax.set_xlabel('Empirical quantiles')
+        ax.set_ylabel('Theoretical quantiles')
+        ax.set_title(f"QQ-plot of fitted {distribution} distribution")
+        ax.grid()
+        plt.show()
 
     
     # Bivariate fit
