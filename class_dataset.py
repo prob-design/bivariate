@@ -22,8 +22,9 @@ class Dataset():
             if len(col_labels) == len(self._cols):
                 self._col_labels = col_labels
             else:
-                warnings.warn("""Length of cols does not match number of 
-                              columns, using default""", UserWarning)      
+                warnings.warn("""No. of col_labels does not match no. of cols
+                              using defaults from dataframe""", UserWarning)
+                              # This won't format correctly in the warning
         self.extremes = None
 
 
@@ -93,6 +94,7 @@ class Dataset():
                           marker='o',
                           ls='none',
                           grid=True,
+                          ylabel=self._col_labels,
                           **kwargs)
         
         return plt.gcf(), ax
@@ -105,7 +107,7 @@ class Dataset():
                           kind='hist',
                           subplots=not together,
                           figsize=figsize,
-                          title=self._cols if not together else None,
+                          title=self._col_labels if not together else None,
                           legend=together,
                           grid=True,
                           **kwargs)
