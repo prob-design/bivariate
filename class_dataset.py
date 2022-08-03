@@ -223,6 +223,10 @@ class Dataset():
     # TODO: this is a lot of duplicate code. We should find a way to make this 
     # and the other fit methods more general and compact.
     def fit_ev(self, var, plot=True, label=None, **kwargs):        
+
+        if self.extremes is None:
+            raise Exception("No extreme values computed yet!")
+        
         x, f = self.ecdf(self.extremes[var])
         
         dist = self.scipy_dist('Extreme')
