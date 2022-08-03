@@ -271,16 +271,47 @@ class Dataset():
     
     # Bivariate fit
     
+    
+    def bivar_fit(self, vars, plot=True, labels=None, N=None):
+        data = self.dataframe[vars]
 
-    def bivar_plot(self):
-        pass
+        mean = np.mean(data, axis=0)
+        cov = np.cov(data, rowvar=0)
+    
+        if not N:
+            N = self.dataframe.shape[0]
+
+        r_norm = st.multivariate_normal.rvs(mean, cov, N)
+        df_r_norm = pd.DataFrame(r_norm, columns=vars)
+
+        if plot:
+            self.bivar_plot(vars, labels=labels)
+
+        return df_r_norm
+
+    def bivar_plot(self, vars, labels=None):
+        plt.figure(figsize=(6, 6))
+        plt.plot(self.dataframe[vars[0]], self.dataframe[vars[1]], ".")
+        plt.grid()
+        if labels:
+            plt.xlabel(labels[0])
+            plt.ylabel(labels[1])
+        plt.show()
+
+        h = sns.jointplot(data=self.dataframe, x=vars[0], y=vars[1])
+        if labels:
+            h.set_axis_labels(labels[0], labels[1])
+        plt.gcf().tight_layout()
+
+        g = sns.displot(data=self.dataframe, x=vars[0], y=vars[1], kind='kde')
+        if labels:
+            g.set_axis_labels(labels[0], labels[1])
+        plt.gcf().tight_layout()
+
+        plt.show()
 
 
     def cov_cor(self):
-        pass
-    
-    
-    def bivar_fit(self):
         pass
     
     
