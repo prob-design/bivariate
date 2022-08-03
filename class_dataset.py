@@ -3,6 +3,7 @@ import numpy as np
 import matplotlib.pyplot as plt
 import seaborn as sns
 import scipy.stats as st
+import warnings
 
 from IPython.display import display
 
@@ -16,7 +17,13 @@ class Dataset():
         self.dataframe = dataframe
         self._time_col = self.find_datetime_col(self.dataframe)
         self._cols = list(dataframe.drop(columns=self._time_col).columns)
-        
+        if cols:
+            if len(cols) == len(self.cols):
+                self._cols = cols
+            else:
+                warnings.warn("""Length of cols does not match number of 
+                              columns, using default""", UserWarning)
+            
         self.extremes = None
 
 
