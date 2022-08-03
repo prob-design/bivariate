@@ -13,44 +13,47 @@ class Dataset():
     # Constructors
 
     
-    def __init__(self, dataframe, cols=None):
+    def __init__(self, dataframe, cols=None, col_labels=None):
         self.dataframe = dataframe
         self._time_col = self.find_datetime_col(self.dataframe)
         self._cols = list(dataframe.drop(columns=self._time_col).columns)
-        if cols:
-            if len(cols) == len(self.cols):
-                self._cols = cols
+        self._col_labels = self._cols.copy()
+        if col_labels:
+            if len(col_labels) == len(self._cols):
+                self._col_labels = col_labels
             else:
                 warnings.warn("""Length of cols does not match number of 
-                              columns, using default""", UserWarning)
-            
+                              columns, using default""", UserWarning)      
         self.extremes = None
 
 
     @classmethod
-    def import_from_filename(cls, filename, var_time, cols=None):
+    def import_from_filename(cls, filename, var_time, cols=None,
+                             col_labels=None):
         dataframe = pd.read_csv(filename, parse_dates=[var_time])
         if cols:
             cols_used = [var_time] + cols
             dataframe = dataframe[cols_used]
-        return cls(dataframe, cols)
+        return cls(dataframe, cols, col_labels)
 
 
     @classmethod
-    def import_from_surfdrive_path(cls, link, path, var_time, cols=None):
+    def import_from_surfdrive_path(cls, link, path, var_time, cols=None,
+                                   col_labels=None):
         link += r'/download?path=%2F'
         path_lst = path.split('/')
         for s in path_lst[:-1]:
             link += s + "%2F"
         link = link[:-3]
         link += "&files=" + path_lst[-1]
-        return cls.import_from_filename(link, var_time, cols)
+        return cls.import_from_filename(link, var_time, cols, col_labels)
 
 
     @classmethod
-    def import_from_surfdrive_file(cls, link, var_time, cols=None):
+    def import_from_surfdrive_file(cls, link, var_time, cols=None,
+                                   col_labels=None):
         link += "/download"
-        return cls.import_from_filename(link, var_time, cols)
+        return cls.import_from_filename(link, var_time, cols, col_labels)
 
 
     # Cleaning dataset
