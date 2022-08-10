@@ -25,6 +25,13 @@ class Dataset():
                 warnings.warn("No. of col_labels does not match no. of cols, using defaults from dataframe", UserWarning)
         self.extremes = None
 
+        self.summary = dict.fromkeys(self._cols,
+                                     dict(desc=self._col_labels,
+                                          cleaned=[],
+                                          distributions_fitted=[],
+                                          fit_parameters={},
+                                          goodness_of_fit={}))
+
 
     @classmethod
     def import_from_filename(cls, filename, var_time, cols=None,
