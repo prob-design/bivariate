@@ -366,8 +366,11 @@ class Dataset():
     
     
     @staticmethod
-    def aic_bic():
-        pass
+    def aic_bic(pdf, k, n):
+        logL = np.sum(np.log10(pdf))
+        aic = 2*k - 2*logL
+        bic = k*np.log(n) - 2*logL
+        return aic, bic
         
     
     @staticmethod
