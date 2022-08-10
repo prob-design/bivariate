@@ -1,4 +1,3 @@
-from statistics import covariance
 import pandas as pd
 import numpy as np
 import matplotlib.pyplot as plt
@@ -318,8 +317,42 @@ class Dataset():
         return cov, corr
     
     
-    def and_or_probabilities(self):
-        pass
+    def and_or_probabilities(self, vars, quantiles, plot=True, labels=None):
+        df_quantiles = [self.dataframe[vars[0]].quantile(quantiles[0]),
+                        self.dataframe[vars[1]].quantile(quantiles[1])]
+        and_sc = self.dataframe[(self.dataframe[vars[0]] >= df_quantiles[0]) &
+                                (self.dataframe[vars[1]] >= df_quantiles[1])]
+        or_sc = self.dataframe[(self.dataframe[vars[0]] >= df_quantiles[0]) |
+                               (self.dataframe[vars[1]] >= df_quantiles[1])]
+                           
+        p_and = len(and_sc)/len(self.dataframe) 
+        p_or = len(or_sc)/len(self.dataframe)
+
+        if plot:
+            fig, ax = plt.subplots(1,
+                                   2,
+                                   sharex=True,
+                                   sharey=True,
+                                   figsize=(20, 5))
+            ax[0].scatter(self.dataframe[vars[0]], self.dataframe[vars[1]])
+            ax[0].scatter(and_sc[vars[0]], and_sc[vars[1]])
+            ax[0].axvline(df_quantiles[0], color='k')
+            ax[0].axhline(df_quantiles[1], color='k')
+            ax[0].set_title(f'AND scenario, probability {p_and:.2f}')
+            if labels:
+                ax[0].set_xlabel(labels[0])
+                ax[0].set_ylabel(labels[1])
+            ax[0].grid()
+
+            ax[1].scatter(self.dataframe[vars[0]], self.dataframe[vars[1]])
+            ax[1].scatter(or_sc[vars[0]], or_sc[vars[1]])
+            ax[1].axvline(df_quantiles[0], color='k')
+            ax[1].axhline(df_quantiles[1], color='k')
+            ax[1].set_title(f'OR scenario, probability {p_or:.2f}')
+            if labels:
+                ax[1].set_xlabel(labels[0])
+                ax[1].set_ylabel(labels[1])
+            ax[1].grid()
     
 
     # Static methods
