@@ -3,6 +3,7 @@ import numpy as np
 import matplotlib.pyplot as plt
 import seaborn as sns
 import scipy.stats as st
+import warnings
 
 from IPython.display import display
 
@@ -12,38 +13,46 @@ class Dataset():
     # Constructors
 
     
-    def __init__(self, dataframe, cols=None):
+    def __init__(self, dataframe, cols=None, col_labels=None):
         self.dataframe = dataframe
         self._time_col = self.find_datetime_col(self.dataframe)
         self._cols = list(dataframe.drop(columns=self._time_col).columns)
-        
+        self._col_labels = self._cols.copy()
+        if col_labels:
+            if len(col_labels) == len(self._cols):
+                self._col_labels = col_labels
+            else:
+                warnings.warn("No. of col_labels does not match no. of cols, using defaults from dataframe", UserWarning)
         self.extremes = None
 
 
     @classmethod
-    def import_from_filename(cls, filename, var_time, cols=None):
+    def import_from_filename(cls, filename, var_time, cols=None,
+                             col_labels=None):
         dataframe = pd.read_csv(filename, parse_dates=[var_time])
         if cols:
             cols_used = [var_time] + cols
             dataframe = dataframe[cols_used]
-        return cls(dataframe, cols)
+        return cls(dataframe, cols, col_labels)
 
 
     @classmethod
-    def import_from_surfdrive_path(cls, link, path, var_time, cols=None):
+    def import_from_surfdrive_path(cls, link, path, var_time, cols=None,
+                                   col_labels=None):
         link += r'/download?path=%2F'
         path_lst = path.split('/')
         for s in path_lst[:-1]:
             link += s + "%2F"
         link = link[:-3]
         link += "&files=" + path_lst[-1]
-        return cls.import_from_filename(link, var_time, cols)
+        return cls.import_from_filename(link, var_time, cols, col_labels)
 
 
     @classmethod
-    def import_from_surfdrive_file(cls, link, var_time, cols=None):
+    def import_from_surfdrive_file(cls, link, var_time, cols=None,
+                                   col_labels=None):
         link += "/download"
-        return cls.import_from_filename(link, var_time, cols)
+        return cls.import_from_filename(link, var_time, cols, col_labels)
 
 
     # Cleaning dataset
@@ -83,6 +92,7 @@ class Dataset():
                           marker='o',
                           ls='none',
                           grid=True,
+                          ylabel=self._col_labels,
                           **kwargs)
         
         return plt.gcf(), ax
@@ -95,7 +105,7 @@ class Dataset():
                           kind='hist',
                           subplots=not together,
                           figsize=figsize,
-                          title=self._cols if not together else None,
+                          title=self._col_labels if not together else None,
                           legend=together,
                           grid=True,
                           **kwargs)
@@ -107,6 +117,7 @@ class Dataset():
         
 
     def plot_ecdf(self, var, label=None, **kwargs):
+        # TODO: use all variables, then use col_labels
         x, f = self.ecdf(self.dataframe[var])
         
         fig, ax = plt.subplots(1, 4, sharex=True, figsize=(24, 5))
@@ -136,7 +147,7 @@ class Dataset():
 
     def fit_distribution(self, var, distribution, plot=True, label=None, 
                          **kwargs):
-
+        # TODO: use all variables (dictionary for dists?), then use col_labels
         x, f = self.ecdf(self.dataframe[var])
 
         dist = self.scipy_dist(distribution)
@@ -167,6 +178,7 @@ class Dataset():
         
 
     def plot_distributions(self, var, together=False, label=None, **kwargs):
+        # TODO: use all variables, then use col_labels
         """
         Plots fitted distributions on a given variable in a single figure
         Currently uses Normal, Exponential, Lognormal, Logistic distributions
