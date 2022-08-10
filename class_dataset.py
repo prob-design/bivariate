@@ -144,6 +144,10 @@ class Dataset():
         fit_pars = dist.fit(self.dataframe[var])
         fit_cdf = dist.cdf(x, *fit_pars)
 
+        aic, bic = self.aic_bic(pdf=dist.pdf(self.dataframe[var], *fit_pars),
+                                k=len(fit_pars),
+                                n=len(self.dataframe[var]))
+
         if plot:
             fig, ax = plt.subplots(figsize=(10, 10))
             ax.plot(x, f, label="Empirical Distribution", **kwargs)
@@ -153,6 +157,8 @@ class Dataset():
             ax.set_ylabel("F(X)")
             if label:
                 plt.suptitle(f'CDF of {label}')
+            gof_string = f'AIC: {aic:.3f}\nBIC: {bic:.3f}'
+            ax.text(0.9, 0.1, gof_string, transform=ax.transAxes)
             ax.legend()
             ax.grid()
             plt.show()
@@ -234,6 +240,10 @@ class Dataset():
         fit_pars = dist.fit(self.extremes[var])
         fit_cdf = dist.cdf(x, *fit_pars)
 
+        aic, bic = self.aic_bic(pdf=dist.pdf(self.extremes[var], *fit_pars),
+                                k=len(fit_pars),
+                                n=len(self.extremes[var]))
+
         if plot:
             fig, ax = plt.subplots(figsize=(10, 10))
             ax.plot(x, f, label="Empirical Distribution", **kwargs)
@@ -243,6 +253,9 @@ class Dataset():
             ax.set_ylabel("F(X)")
             if label:
                 plt.suptitle(f'CDF of {label}')
+            gof_string = f'AIC: {aic:.3f}\nBIC: {bic:.3f}'
+            ax.text(0.9, 0.05, gof_string, transform=ax.transAxes,
+                    horizontalalignment='center', bbox=dict(facecolor='white'))
             ax.legend()
             ax.grid()
             plt.show()
