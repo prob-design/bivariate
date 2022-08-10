@@ -22,9 +22,7 @@ class Dataset():
             if len(col_labels) == len(self._cols):
                 self._col_labels = col_labels
             else:
-                warnings.warn("""No. of col_labels does not match no. of cols
-                              using defaults from dataframe""", UserWarning)
-                              # This won't format correctly in the warning
+                warnings.warn("No. of col_labels does not match no. of cols, using defaults from dataframe", UserWarning)
         self.extremes = None
 
 
@@ -119,6 +117,7 @@ class Dataset():
         
 
     def plot_ecdf(self, var, label=None, **kwargs):
+        # TODO: use all variables, then use col_labels
         x, f = self.ecdf(self.dataframe[var])
         
         fig, ax = plt.subplots(1, 4, sharex=True, figsize=(24, 5))
@@ -148,7 +147,7 @@ class Dataset():
 
     def fit_distribution(self, var, distribution, plot=True, label=None, 
                          **kwargs):
-
+        # TODO: use all variables (dictionary for dists?), then use col_labels
         x, f = self.ecdf(self.dataframe[var])
 
         dist = self.scipy_dist(distribution)
@@ -173,6 +172,7 @@ class Dataset():
         
 
     def plot_distributions(self, var, together=False, label=None, **kwargs):
+        # TODO: use all variables, then use col_labels
         """
         Plots fitted distributions on a given variable in a single figure
         Currently uses Normal, Exponential, Lognormal, Logistic distributions
