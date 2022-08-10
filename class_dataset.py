@@ -25,9 +25,8 @@ class Dataset():
                 warnings.warn("No. of col_labels does not match no. of cols, using defaults from dataframe", UserWarning)
         self.extremes = None
 
-        self.summary = dict.fromkeys(self._cols,
-                                     dict(desc=self._col_labels,
-                                          cleaned=[],
+        self.summary = dict.fromkeys(self._col_labels,
+                                     dict(cleaned=[],
                                           distributions_fitted=[],
                                           fit_parameters={},
                                           goodness_of_fit={}))
@@ -180,6 +179,8 @@ class Dataset():
             ax.legend()
             ax.grid()
             plt.show()
+            
+        self.summary[var]
 
         return fit_pars, fit_cdf # Should this also return the plot?
         
