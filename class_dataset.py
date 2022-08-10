@@ -180,7 +180,8 @@ class Dataset():
             ax.grid()
             plt.show()
             
-        self.summary[var]
+        self.summary[var]['distributions_fitted'].append(distribution)
+        self.summary[var]['fit_parameters'][distribution] = fit_pars
 
         return fit_pars, fit_cdf # Should this also return the plot?
         
@@ -279,6 +280,9 @@ class Dataset():
             ax.legend()
             ax.grid()
             plt.show()
+
+        self.summary[var]['distributions_fitted'].append('Extreme')
+        self.summary[var]['fit_parameters']['Extreme'] = fit_pars
 
         return fit_pars, fit_cdf
 
