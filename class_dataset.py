@@ -25,6 +25,7 @@ class Dataset():
             else:
                 warnings.warn("No. of col_labels does not match no. of cols, using defaults from dataframe", UserWarning)
         self.extremes = None
+        self._ncols = len(self._cols)
 
         self.summary = dict.fromkeys(self._col_labels,
                                      dict(nans_removed=[],
@@ -123,31 +124,39 @@ class Dataset():
     # Univariate fit
         
 
-    def plot_ecdf(self, var, label=None, **kwargs):
-        # TODO: use all variables, then use col_labels
-        x, f = self.ecdf(self.dataframe[var])
-        
-        fig, ax = plt.subplots(1, 4, sharex=True, figsize=(24, 5))
-        if label:
-            plt.suptitle(f'ECDF of {label}', y=0.99)
+    def plot_ecdf(self, **kwargs):
 
-        ax[0].step(x, f, linewidth=4, **kwargs)  # Plot F(x)
-        ax[0].set_title('$F(x)$')
-        ax[0].set_ylabel('Cumulative Probability')
-        ax[0].grid()
+        # Make figure scale in height with the number of columns selected
+        fig = plt.figure(figsize=(25, 5*self._ncols))
 
-        ax[1].step(x, 1 - f, linewidth=4, **kwargs)  # Plot 1-F(x)
-        ax[1].set_title('$1- F(x)$')
-        ax[1].grid()
+        # Make a new subfigure for every variable
+        subfigs = fig.subfigures(self._ncols, 1)
 
-        ax[2].semilogy(x, f, linewidth=4, **kwargs)  # Plot logY 1-F(x)
-        ax[2].set_title('$F(x)$. Y axis log scale')
-        ax[2].grid()
+        for i in range(self._ncols):
+            
+            # Calculate ECDF
+            x, f = self.ecdf(self.dataframe[self._cols[i]])
+            
+            # Make subplots inside the subfigure
+            ax = subfigs[i].subplots(1, 4)
+            subfigs[i].suptitle(self._col_labels[i])
+            
+            ax[0].step(x, f, linewidth=4, **kwargs)  # Plot F(x)
+            ax[0].set_title('$F(x)$')
+            ax[0].set_ylabel('Cumulative Probability')
+            ax[0].grid()
 
-        ax[3].semilogy(x, 1 - f, linewidth=4, **kwargs)  # Plot logY 1-F(x)
-        ax[3].set_title('$1- F(x)$. Y axis log scale')
-        ax[3].grid()
-        plt.show()
+            ax[1].step(x, 1 - f, linewidth=4, **kwargs)  # Plot 1-F(x)
+            ax[1].set_title('$1- F(x)$')
+            ax[1].grid()
+
+            ax[2].semilogy(x, f, linewidth=4, **kwargs)  # Plot logY 1-F(x)
+            ax[2].set_title('$F(x)$. Y axis log scale')
+            ax[2].grid()
+
+            ax[3].semilogy(x, 1 - f, linewidth=4, **kwargs)  # Plot logY 1-F(x)
+            ax[3].set_title('$1- F(x)$. Y axis log scale')
+            ax[3].grid()
         
         return plt.gcf(), ax
 
