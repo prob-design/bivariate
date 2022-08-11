@@ -7,6 +7,8 @@ import warnings
 
 from IPython.display import display
 
+from class_summary import Summary
+
 # TODO: add docstrings everywhere
 
 class Dataset():
@@ -38,12 +40,7 @@ class Dataset():
         self.extremes = None
 
         # Summary
-        self.summary = dict.fromkeys(self._col_labels,
-                                     dict(nans_removed=[],
-                                          distributions_fitted=[],
-                                          fit_parameters={},
-                                          goodness_of_fit={}))
-
+        self.summaries = dict.fromkeys(self._col_labels, Summary())
 
     @classmethod
     def import_from_filename(cls, filename, var_time, cols=None,
@@ -177,15 +174,20 @@ class Dataset():
         if distribution == 'all':
             distribution = ["Normal", "Exponential", "Lognormal", "Logistic"]
         elif isinstance(distribution, str):
-            distribution = list(distribution)
+            distribution = [distribution]
         
         for _dist in distribution:
             sp_dist = self.scipy_dist(_dist)
             for _col in self._col_labels:
                 fit_pars = sp_dist.fit(self.dataframe[_col])
-                self.summary[_col]['distributions_fitted'].append(_dist)
-                self.summary[_col]['fit_parameters'][_dist] = fit_pars
-        
+                aic, bic = self.aic_bic(sp_dist.pdf(self.dataframe[_col],
+                                                    *fit_pars),
+                                        len(fit_pars),
+                                        len(self.dataframe[_col]))
+                self.summaries[_col].add_distribution(_dist,
+                                                      fit_pars,
+                                                      aic,
+                                                      bic) 
         
     #    
 
@@ -470,13 +472,13 @@ class Dataset():
         """
         if distribution.lower()[:4] == "norm":
             dist = st.norm
-        if distribution.lower()[:3] == "exp":
+        elif distribution.lower()[:3] == "exp":
             dist = st.expon
-        if distribution.lower()[:4] == "logn":
+        elif distribution.lower()[:4] == "logn":
             dist = st.lognorm
-        if distribution.lower()[:4] == "logi":
+        elif distribution.lower()[:4] == "logi":
             dist = st.logistic
-        if distribution.lower()[:4] == "extr":
+        elif distribution.lower()[:4] == "extr":
             dist = st.genextreme
         else:
             raise Exception("Distribtution not found!")
