@@ -7,6 +7,7 @@ import warnings
 
 from IPython.display import display
 
+# TODO: add docstrings everywhere
 
 class Dataset():
 
@@ -26,7 +27,7 @@ class Dataset():
         self.extremes = None
 
         self.summary = dict.fromkeys(self._col_labels,
-                                     dict(cleaned=[],
+                                     dict(nans_removed=[],
                                           distributions_fitted=[],
                                           fit_parameters={},
                                           goodness_of_fit={}))
@@ -75,7 +76,7 @@ class Dataset():
             col_out_idx = (
                 col[np.abs(z_score) > z_score_threshold].index.values.tolist())
             dataframe = dataframe.drop(index=col_out_idx).reset_index(drop=True)
-        
+                
         self.dataframe = dataframe
 
 
@@ -325,6 +326,7 @@ class Dataset():
             self.bivar_plot(vars, labels=labels)
 
         return df_r_norm
+
 
     def bivar_plot(self, vars, labels=None):
         plt.figure(figsize=(6, 6))
