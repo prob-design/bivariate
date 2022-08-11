@@ -15,18 +15,29 @@ class Dataset():
 
     
     def __init__(self, dataframe, cols=None, col_labels=None):
+        # Main dataframe
         self.dataframe = dataframe
+        
+        # Columns to use
         self._time_col = self.find_datetime_col(self.dataframe)
         self._cols = list(dataframe.drop(columns=self._time_col).columns)
+
+        # Descriptive columns labels
         self._col_labels = self._cols.copy()
         if col_labels:
             if len(col_labels) == len(self._cols):
                 self._col_labels = col_labels
             else:
-                warnings.warn("No. of col_labels does not match no. of cols, using defaults from dataframe", UserWarning)
-        self.extremes = None
+                warnings.warn("No. of col_labels does not match no. of cols,\
+                    using defaults from dataframe", UserWarning)
+
+        # Helpers
         self._ncols = len(self._cols)
 
+        # To be computed
+        self.extremes = None
+
+        # Summary
         self.summary = dict.fromkeys(self._col_labels,
                                      dict(nans_removed=[],
                                           distributions_fitted=[],
@@ -65,7 +76,7 @@ class Dataset():
 
     # Cleaning dataset
 
-        
+    # TODO: see issue #5 on GitLab  
     def clean_dataset(self, z_score_threshold=5):
         dataframe = self.dataframe.dropna().reset_index(drop=True)
 
@@ -137,7 +148,7 @@ class Dataset():
             # Calculate ECDF
             x, f = self.ecdf(self.dataframe[self._cols[i]])
             
-            # Make subplots inside the subfigure
+            # Make subplots inside the subfig
             ax = subfigs[i].subplots(1, 4)
             subfigs[i].suptitle(self._col_labels[i])
             
