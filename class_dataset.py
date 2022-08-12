@@ -6,6 +6,7 @@ import scipy.stats as st
 import warnings
 
 from IPython.display import display
+from matplotlib.patches import Rectangle
 
 from class_summary import Summary
 
@@ -189,38 +190,40 @@ class Dataset():
                                                       aic,
                                                       bic) 
         
-    #    
 
-    #    # TODO: link this to the Distribution class
-    #    dist = self.scipy_dist(distribution)
-
-    #    fit_pars = dist.fit(self.dataframe[var])
-    #    fit_cdf = dist.cdf(x, *fit_pars)
-
-    #    aic, bic = self.aic_bic(pdf=dist.pdf(self.dataframe[var], *fit_pars),
-    #                            k=len(fit_pars),
-    #                            n=len(self.dataframe[var]))
-
-    #    if plot:
-    #        fig, ax = plt.subplots(figsize=(10, 10))
-    #        ax.plot(x, f, label="Empirical Distribution", **kwargs)
-    #        ax.plot(x, fit_cdf, label=f"Fitted {distribution} distribution",
-    #                **kwargs)
-    #        ax.set_xlabel("Value")
-    #        ax.set_ylabel("F(X)")
-    #        if label:
-    #            plt.suptitle(f'CDF of {label}')
-    #        gof_string = f'AIC: {aic:.3f}\nBIC: {bic:.3f}'
-    #        ax.text(0.9, 0.1, gof_string, transform=ax.transAxes)
-    #        ax.legend()
-    #        ax.grid()
-    #        plt.show()
-    #        
-    #    self.summary[var]['distributions_fitted'].append(distribution)
-    #    self.summary[var]['fit_parameters'][distribution] = fit_pars
-
-    #    return fit_pars, fit_cdf # Should this also return the plot?
+    def plot_fitted_distributions(self, **kwargs):
+        ndists = len(self.summaries[self._cols[0]].distributions_fitted())
         
+        fig = plt.figure(figsize=(5*ndists, 5*self._ncols))
+        subfig = fig.subfigures(self._ncols, 1)
+        
+        for i, _col in enumerate(self._cols):
+            ax = subfig[i].subplots(1, ndists)
+
+            subfig[i].suptitle(self._cols[i])
+
+            x, f = self.ecdf(self.dataframe[_col])
+
+            for j, dist in enumerate(self.summaries[_col].distributions_fitted()):
+                fit_pars = self.summaries[_col].distribution_parameters(dist)
+                fit_cdf = self.scipy_dist(dist).cdf(x, *fit_pars)
+                
+                ecdf_plot,  = ax[j].plot(x, f, label="ECDF", **kwargs)                
+                fitted_plot,  = ax[j].plot(x, fit_cdf,
+                                         label=f"Fitted {dist} distribution")
+                ax[j].set_xlabel("Value")
+                ax[j].set_ylabel("F(X)")
+                aic = self.summaries[_col].distributions[dist]['aic']
+                bic = self.summaries[_col].distributions[dist]['bic']
+                gof_string = f"AIC: {aic:.3f}\nBIC: {bic:.3f}"
+                extra_legend_entry = Rectangle((0, 0), 1, 1, fc='white',
+                                               fill=False, edgecolor='none',
+                                               linewidth=0)
+                ax[j].legend([ecdf_plot, fitted_plot, extra_legend_entry],
+                             ("ECDF", f"Fitted {dist} distribution",
+                              gof_string))
+                ax[j].grid()
+                
 
     def plot_distributions(self, var, together=False, label=None, **kwargs):
         # TODO: use all variables, then use col_labels
