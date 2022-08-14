@@ -24,6 +24,7 @@ class Dataset():
         # Columns to use
         self._time_col = self.find_datetime_col(self.dataframe)
         self._cols = list(dataframe.drop(columns=self._time_col).columns)
+        print(self._cols)
 
         # Descriptive columns labels
         self._col_labels = self._cols.copy()
@@ -41,7 +42,9 @@ class Dataset():
         self.extremes = None
 
         # Empty FitResults object for every variable
-        self.results = dict.fromkeys(self._col_labels, FitResults())
+        self.results = {}
+        for _col in self._cols:
+            self.results[_col] = FitResults()
 
     @classmethod
     def import_from_filename(cls, filename, var_time, cols=None,
@@ -260,53 +263,60 @@ class Dataset():
 
     # Extreme Value Analysis
     
-
+    # TODO: let the user select different periods for different columns
     def create_ev(self, period):
         self.extremes = self.dataframe.resample(period[0].upper(),
                                                 on=self._time_col)\
                                                 .max().reset_index(drop=True)
         return self.extremes
 
-
-    # TODO: this is a lot of duplicate code. We should find a way to make this 
-    # and the other fit methods more general and compact.
-    def fit_ev(self, var, plot=True, label=None, **kwargs):        
+        
+    def fit_ev(self):
 
         if self.extremes is None:
-            raise Exception("No extreme values computed yet!")
-        
-        x, f = self.ecdf(self.extremes[var])
-        
+            raise Exception("No extreme values computed yet! Use create_ev \
+                first.")
+
+        # Get SciPy extreme distribution
         dist = self.scipy_dist('Extreme')
+
+        # Iterate over the selected columns
+        for _col in self._cols:
+
+            # Fit GEV to the calculated extreme values
+            fit_pars = dist.fit(self.extremes[_col])
+            
+            # Calculate GoF statistics 
+            aic, bic = self.aic_bic(dist.pdf(self.extremes[_col], *fit_pars),
+                                    len(fit_pars), len(self.extremes[_col]))
+            
+            # Add parameters and GoF parameters to the results object
+            self.results[_col].add_distribution('Extreme', fit_pars, aic, bic)
+            
+        return fit_pars
+
+            
+    def plot_ev(self, **kwargs):
         
-        fit_pars = dist.fit(self.extremes[var])
-        fit_cdf = dist.cdf(x, *fit_pars)
+        #if 'Extreme' not in self.results[self._cols[0]].distributions_fitted:
+        #    raise Exception("No extreme value distribution fitted yet!")
 
-        aic, bic = self.aic_bic(pdf=dist.pdf(self.extremes[var], *fit_pars),
-                                k=len(fit_pars),
-                                n=len(self.extremes[var]))
+        fig, ax = plt.subplots(self._ncols, 1, figsize=(10, 10*self._ncols))
 
-        if plot:
-            fig, ax = plt.subplots(figsize=(10, 10))
-            ax.plot(x, f, label="Empirical Distribution", **kwargs)
-            ax.plot(x, fit_cdf, label=f"Fitted extreme distribution",
-                    **kwargs)
-            ax.set_xlabel("Value")
-            ax.set_ylabel("F(X)")
-            if label:
-                plt.suptitle(f'CDF of {label}')
-            gof_string = f'AIC: {aic:.3f}\nBIC: {bic:.3f}'
-            ax.text(0.9, 0.05, gof_string, transform=ax.transAxes,
-                    horizontalalignment='center', bbox=dict(facecolor='white'))
-            ax.legend()
-            ax.grid()
-            plt.show()
+        for i, _col in enumerate(self._cols):
+            x, f = self.ecdf(self.extremes[_col])    
+            fit_pars = self.results[_col].distribution_parameters('Extreme')
+            fit_cdf = self.scipy_dist('Extreme').cdf(x, *fit_pars)
+            ax[i].plot(x, f, label="Empricial distribution", **kwargs)
+            ax[i].plot(x, fit_cdf, label="Fitted extreme distribution",
+                       **kwargs)
+            ax[i].set_xlabel("Value")
+            ax[i].set_ylabel("F(X)")
+            ax[i].legend()
+            ax[i].grid()
 
-        self.summary[var]['distributions_fitted'].append('Extreme')
-        self.summary[var]['fit_parameters']['Extreme'] = fit_pars
-
-
-        return fit_pars, fit_cdf
+            
+        return fig, ax
 
     
     def QQ_plot(self, var, distribution, **kwargs):
