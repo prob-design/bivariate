@@ -8,7 +8,7 @@ import warnings
 from IPython.display import display
 from matplotlib.patches import Rectangle
 
-from class_summary import Summary
+from class_fitresults import FitResults
 
 # TODO: add docstrings everywhere
 
@@ -40,8 +40,8 @@ class Dataset():
         # To be computed
         self.extremes = None
 
-        # Summary
-        self.summaries = dict.fromkeys(self._col_labels, Summary())
+        # Empty FitResults object for every variable
+        self.results = dict.fromkeys(self._col_labels, FitResults())
 
     @classmethod
     def import_from_filename(cls, filename, var_time, cols=None,
@@ -185,14 +185,14 @@ class Dataset():
                                                     *fit_pars),
                                         len(fit_pars),
                                         len(self.dataframe[_col]))
-                self.summaries[_col].add_distribution(_dist,
+                self.results[_col].add_distribution(_dist,
                                                       fit_pars,
                                                       aic,
                                                       bic) 
         
 
     def plot_fitted_distributions(self, **kwargs):
-        ndists = len(self.summaries[self._cols[0]].distributions_fitted())
+        ndists = len(self.results[self._cols[0]].distributions_fitted())
         
         fig = plt.figure(figsize=(5*ndists, 5*self._ncols))
         subfig = fig.subfigures(self._ncols, 1)
@@ -204,8 +204,8 @@ class Dataset():
 
             x, f = self.ecdf(self.dataframe[_col])
 
-            for j, dist in enumerate(self.summaries[_col].distributions_fitted()):
-                fit_pars = self.summaries[_col].distribution_parameters(dist)
+            for j, dist in enumerate(self.results[_col].distributions_fitted()):
+                fit_pars = self.results[_col].distribution_parameters(dist)
                 fit_cdf = self.scipy_dist(dist).cdf(x, *fit_pars)
                 
                 ecdf_plot,  = ax[j].plot(x, f, label="ECDF", **kwargs)                
@@ -213,8 +213,7 @@ class Dataset():
                                          label=f"Fitted {dist} distribution")
                 ax[j].set_xlabel("Value")
                 ax[j].set_ylabel("F(X)")
-                aic = self.summaries[_col].distributions[dist]['aic']
-                bic = self.summaries[_col].distributions[dist]['bic']
+                aic, bic = self.results[_col].fit_stats(dist, ['aic', 'bic'])
                 gof_string = f"AIC: {aic:.3f}\nBIC: {bic:.3f}"
                 extra_legend_entry = Rectangle((0, 0), 1, 1, fc='white',
                                                fill=False, edgecolor='none',

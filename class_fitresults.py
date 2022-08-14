@@ -1,4 +1,4 @@
-class Summary():
+class FitResults():
     def __init__(self):
 
         self.distributions = {}
@@ -16,3 +16,10 @@ class Summary():
 
     def distribution_parameters(self, distribution):
         return self.distributions[distribution]['parameters']
+
+
+    def fit_stats(self, distribution, statistic='all'):
+        if isinstance(statistic, str):
+            statistic = [statistic]
+
+        return [self.distributions[distribution][_stat] for _stat in statistic] 
