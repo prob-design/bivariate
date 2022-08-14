@@ -141,6 +141,7 @@ class Dataset():
         # Make a new subfigure for every variable
         subfigs = fig.subfigures(self._ncols, 1)
 
+        # Iterate over selected columns
         for i in range(self._ncols):
             
             # Calculate ECDF
@@ -171,108 +172,90 @@ class Dataset():
 
 
     def fit_distribution(self, distribution='all'):
-        # TODO: use all variables (dictionary for dists?), then use col_labels
+
+        # Make list of distritbutions to fit
         if distribution == 'all':
             distribution = ["Normal", "Exponential", "Lognormal", "Logistic"]
         elif isinstance(distribution, str):
             distribution = [distribution]
         
+        # Iterate over the distributions
         for _dist in distribution:
+
+            # SciPy distribution from argument
             sp_dist = self.scipy_dist(_dist)
-            for _col in self._col_labels:
+
+            
+            # Iterate over selected columns
+            for _col in self._cols:
+
+                # Fit distribution to the data
                 fit_pars = sp_dist.fit(self.dataframe[_col])
+
+                # Calculate the GoF statistics
                 aic, bic = self.aic_bic(sp_dist.pdf(self.dataframe[_col],
                                                     *fit_pars),
                                         len(fit_pars),
                                         len(self.dataframe[_col]))
+
+                # Add distribution parameters and GoF to the results object
                 self.results[_col].add_distribution(_dist,
-                                                      fit_pars,
-                                                      aic,
-                                                      bic) 
+                                                    fit_pars,
+                                                    aic,
+                                                    bic) 
         
 
     def plot_fitted_distributions(self, **kwargs):
+        
+        # Number of fitted distributions
         ndists = len(self.results[self._cols[0]].distributions_fitted())
         
+        # Create figure and subfigures
         fig = plt.figure(figsize=(5*ndists, 5*self._ncols))
-        subfig = fig.subfigures(self._ncols, 1)
+        subfigs = fig.subfigures(self._ncols, 1)
         
+        # Iterate over the selected variables
         for i, _col in enumerate(self._cols):
-            ax = subfig[i].subplots(1, ndists)
 
-            subfig[i].suptitle(self._cols[i])
+            # Add subplot for every fitted dist to subfigure
+            ax = subfigs[i].subplots(1, ndists)
+            subfigs[i].suptitle(self._cols[i])
 
+            # Calculate ECDF for the current variable
             x, f = self.ecdf(self.dataframe[_col])
 
+            # Iterate over the fitted distributions
             for j, dist in enumerate(self.results[_col].distributions_fitted()):
+
+                # Calculate the fitted cdf from parameters
                 fit_pars = self.results[_col].distribution_parameters(dist)
                 fit_cdf = self.scipy_dist(dist).cdf(x, *fit_pars)
                 
+                # Plot the ECDF 
                 ecdf_plot,  = ax[j].plot(x, f, label="ECDF", **kwargs)                
+
+                # Plot the fitted CDF
                 fitted_plot,  = ax[j].plot(x, fit_cdf,
-                                         label=f"Fitted {dist} distribution")
+                                           label=f"Fitted {dist} distribution")
+
+                # Set labels
                 ax[j].set_xlabel("Value")
                 ax[j].set_ylabel("F(X)")
+
+                # Add AIC and BIC to the legend of the plot
                 aic, bic = self.results[_col].fit_stats(dist, ['aic', 'bic'])
                 gof_string = f"AIC: {aic:.3f}\nBIC: {bic:.3f}"
                 extra_legend_entry = Rectangle((0, 0), 1, 1, fc='white',
                                                fill=False, edgecolor='none',
                                                linewidth=0)
+
+                # Set legend
                 ax[j].legend([ecdf_plot, fitted_plot, extra_legend_entry],
                              ("ECDF", f"Fitted {dist} distribution",
                               gof_string))
+
+                # Set grid
                 ax[j].grid()
-                
-
-    def plot_distributions(self, var, together=False, label=None, **kwargs):
-        # TODO: use all variables, then use col_labels
-        """
-        Plots fitted distributions on a given variable in a single figure
-        Currently uses Normal, Exponential, Lognormal, Logistic distributions
-
-        Arguments:
-            var (series): the variable
-            separate (bool): whether to plot the distributions in seperate plots
-            label (str): optional label to put in the title of the plot
-        """
-        x, f_emp = self.ecdf(self.dataframe[var])
-        f_norm = self.fit_distribution(var, "Normal", plot=False)[1]
-        f_exp = self.fit_distribution(var, "Exponential", plot=False)[1]
-        f_lognorm = self.fit_distribution(var, "Lognormal", plot=False)[1]
-        f_logit = self.fit_distribution(var, "Logistic", plot=False)[1]
-
-        fitted = [f_norm, f_exp, f_lognorm, f_logit]
-        dist_names = ["Normal", "Exponential", "Lognormal", "Logistic"]
-
-        if not together:
-            fig, ax = plt.subplots(1, 4, sharex=True, sharey=True, figsize=(20, 6))
-
-            for i in range(len(fitted)):
-                ax[i].plot(x, f_emp, label="Empirical Distribution", **kwargs)
-                ax[i].plot(x, fitted[i],
-                           label=f"Fitted {dist_names[i]} distribution", **kwargs)
-                ax[i].set_xlabel("Value")
-                ax[i].grid()
-                ax[i].legend(bbox_to_anchor=(0.5, -0.1), loc='upper center')
-            ax[0].set_ylabel("F(X)")
-            # plt.tight_layout()
-
-        else:
-            fig, ax = plt.subplots(sharex=True, sharey=True, figsize=(20, 10))
-            ax.plot(x, f_emp, label="Empirical Distribution", **kwargs)
-            for i in range(len(fitted)):
-                ax.plot(x, fitted[i], label=f"Fitted {dist_names[i]} distribution",
-                        **kwargs)
-            ax.set_xlabel("Value")
-            ax.set_ylabel("F(X)")
-            ax.legend(bbox_to_anchor=(0.5, -0.1), ncol=len(fitted) + 1, 
-                      loc='upper center')
-            plt.grid()
-
-        if label:
-            plt.suptitle(f"CDF's of {label}")
-
-        plt.show()
     
 
     # Extreme Value Analysis
