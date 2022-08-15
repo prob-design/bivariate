@@ -45,6 +45,8 @@ class Dataset():
         self.extremes = None
         self._bivariate_vars = None
         self._bivar_r_norm = None
+        self._cov = None
+        self._cor = None
 
         # Empty FitResults object for every variable
         self.results = {}
@@ -429,48 +431,49 @@ class Dataset():
         plt.show()
 
 
-    def cov_cor(self, vars):
-        cov = np.cov(self.dataframe[vars[0]], self.dataframe[vars[1]])
-        corr, _ = st.pearsonr(self.dataframe[vars[0]], self.dataframe[vars[1]])
-        return cov, corr
+    def cov_cor(self):
+        self._cov = np.cov(self.dataframe[self._bivariate_vars[0]],
+                           self.dataframe[self._bivariate_vars[1]])
+        self._cor, _ = st.pearsonr(self.dataframe[self._bivariate_vars[0]], 
+                                   self.dataframe[self._bivariate_vars[1]])
+        return self._cov, self._cor
     
     
-    def and_or_probabilities(self, vars, quantiles, plot=True, labels=None):
-        df_quantiles = [self.dataframe[vars[0]].quantile(quantiles[0]),
-                        self.dataframe[vars[1]].quantile(quantiles[1])]
-        and_sc = self.dataframe[(self.dataframe[vars[0]] >= df_quantiles[0]) &
-                                (self.dataframe[vars[1]] >= df_quantiles[1])]
-        or_sc = self.dataframe[(self.dataframe[vars[0]] >= df_quantiles[0]) |
-                               (self.dataframe[vars[1]] >= df_quantiles[1])]
+    def plot_and_or_probabilities(self, quantiles):
+        df_quantiles = [self.dataframe[self._bivariate_vars[0]]\
+                            .quantile(quantiles[0]),
+                        self.dataframe[self._bivariate_vars[1]]\
+                            .quantile(quantiles[1])]
+        and_sc = self.dataframe[(self.dataframe[self._bivariate_vars[0]]\
+                                    >= df_quantiles[0]) &
+                                (self.dataframe[self._bivariate_vars[1]]\
+                                    >= df_quantiles[1])]
+        or_sc = self.dataframe[(self.dataframe[self._bivariate_vars[0]]\
+                                    >= df_quantiles[0]) |
+                               (self.dataframe[self._bivariate_vars[1]]\
+                                    >= df_quantiles[1])]
                            
         p_and = len(and_sc)/len(self.dataframe) 
         p_or = len(or_sc)/len(self.dataframe)
 
-        if plot:
-            fig, ax = plt.subplots(1,
-                                   2,
-                                   sharex=True,
-                                   sharey=True,
-                                   figsize=(20, 5))
-            ax[0].scatter(self.dataframe[vars[0]], self.dataframe[vars[1]])
-            ax[0].scatter(and_sc[vars[0]], and_sc[vars[1]])
-            ax[0].axvline(df_quantiles[0], color='k')
-            ax[0].axhline(df_quantiles[1], color='k')
-            ax[0].set_title(f'AND scenario, probability {p_and:.2f}')
-            if labels:
-                ax[0].set_xlabel(labels[0])
-                ax[0].set_ylabel(labels[1])
-            ax[0].grid()
+        fig, ax = plt.subplots(1, 2, sharex=True, sharey=True, figsize=(20, 5))
+        ax[0].scatter(self.dataframe[self._bivariate_vars[0]],
+                      self.dataframe[self._bivariate_vars[1]])
+        ax[0].scatter(and_sc[self._bivariate_vars[0]],
+                      and_sc[self._bivariate_vars[1]])
+        ax[0].axvline(df_quantiles[0], color='k')
+        ax[0].axhline(df_quantiles[1], color='k')
+        ax[0].set_title(f'AND scenario, probability {p_and:.2f}')
+        ax[0].grid()
 
-            ax[1].scatter(self.dataframe[vars[0]], self.dataframe[vars[1]])
-            ax[1].scatter(or_sc[vars[0]], or_sc[vars[1]])
-            ax[1].axvline(df_quantiles[0], color='k')
-            ax[1].axhline(df_quantiles[1], color='k')
-            ax[1].set_title(f'OR scenario, probability {p_or:.2f}')
-            if labels:
-                ax[1].set_xlabel(labels[0])
-                ax[1].set_ylabel(labels[1])
-            ax[1].grid()
+        ax[1].scatter(self.dataframe[self._bivariate_vars[0]],
+                      self.dataframe[self._bivariate_vars[1]])
+        ax[1].scatter(or_sc[self._bivariate_vars[0]],
+                      or_sc[self._bivariate_vars[1]])
+        ax[1].axvline(df_quantiles[0], color='k')
+        ax[1].axhline(df_quantiles[1], color='k')
+        ax[1].set_title(f'OR scenario, probability {p_or:.2f}')
+        ax[1].grid()
     
 
     # Static methods
