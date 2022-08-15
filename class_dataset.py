@@ -14,6 +14,8 @@ from class_fitresults import FitResults
 
 class Dataset():
 
+    distributions = ["Normal", "Exponential", "Lognormal", "Logistic"]
+    
     # Constructors
 
     
@@ -178,7 +180,7 @@ class Dataset():
 
         # Make list of distritbutions to fit
         if distribution == 'all':
-            distribution = ["Normal", "Exponential", "Lognormal", "Logistic"]
+            distribution = self.distributions
         elif isinstance(distribution, str):
             distribution = [distribution]
         
@@ -318,24 +320,50 @@ class Dataset():
             
         return fig, ax
 
-    
-    def QQ_plot(self, var, distribution, **kwargs):
-        pars, cdf = self.fit_distribution(distribution)
-        dist = self.scipy_dist(distribution)
-        n = len(self.dataframe[var])
-        var_sorted = np.sort(self.dataframe[var])
+    def QQ_plot(self, **kwargs):
+        
+        # Number of fitted distributions
+        ndists = len(self.results[self._cols[0]].distributions_fitted())
 
-        ecdf_Q = np.linspace(1, n, n)/(n + 1)
-        f_Q = dist.cdf(var_sorted, *pars)
+        fig = plt.figure(figsize=(5*ndists, 5*self._ncols), constrained_layout=True)
+        subfigs = fig.subfigures(self._ncols, 1)
+        
+        # Iterate over the selected variables
+        for i, _col in enumerate(self._cols):
 
-        fig, ax = plt.subplots(figsize=(14, 8))
-        ax.plot([0, 1], [0, 1], '--', color='k')
-        ax.plot(ecdf_Q, f_Q, **kwargs)
-        ax.set_xlabel('Empirical quantiles')
-        ax.set_ylabel('Theoretical quantiles')
-        ax.set_title(f"QQ-plot of fitted {distribution} distribution")
-        ax.grid()
-        plt.show()
+            # Add subplot for every fitted dist to subfigure
+            ax = subfigs[i].subplots(1, ndists)
+            subfigs[i].suptitle(self._cols[i])
+
+            # Calculate ECDF for the current variable
+            x, f = self.ecdf(self.dataframe[_col])
+
+            # Iterate over the fitted distributions
+            for j, dist in enumerate(
+                self.results[_col].distributions_fitted()):
+
+                # Calculate the fitted cdf from parameters
+                fit_pars = self.results[_col].distribution_parameters(dist)
+
+                # Plot the quantiles
+                sp_dist = self.scipy_dist(dist)
+                st.probplot(self.dataframe[_col], fit_pars, sp_dist,
+                            plot = ax[j])
+                
+                # Plot the ECDF 
+                ax[j].plot([0, 1], [0, 1], '--', color='k')
+
+                # Set labels
+                ax[j].set_xlabel("Value")
+                ax[j].set_ylabel("F(X)")
+
+                # Set title of subplot to the distribution
+                ax[j].set_title(dist)
+
+                # Set grid
+                ax[j].grid()
+                
+        return fig
 
     
     # Bivariate fit
@@ -460,6 +488,7 @@ class Dataset():
         f = np.arange(1, n+1)/n
         return x, f
     
+
     @staticmethod
     def scipy_dist(distribution):
         """
@@ -479,6 +508,7 @@ class Dataset():
             raise Exception("Distribtution not found!")
         return dist
     
+
     @staticmethod
     def set_TUDstyle():
         TUcolor = {"cyan": "#00A6D6",
@@ -496,5 +526,4 @@ class Dataset():
         plt.rcParams.update({'axes.prop_cycle': plt.cycler(color=TUcolor.values()),
                              'font.size': 16, "lines.linewidth": 4})
         return TUcolor
-    
     
