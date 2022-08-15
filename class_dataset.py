@@ -1,3 +1,4 @@
+from multiprocessing.sharedctypes import Value
 import pandas as pd
 import numpy as np
 import matplotlib.pyplot as plt
@@ -42,6 +43,8 @@ class Dataset():
 
         # To be computed
         self.extremes = None
+        self._bivariate_vars = None
+        self._bivar_r_norm = None
 
         # Empty FitResults object for every variable
         self.results = {}
@@ -320,6 +323,7 @@ class Dataset():
             
         return fig, ax
 
+
     def QQ_plot(self, **kwargs):
         
         # Number of fitted distributions
@@ -369,8 +373,23 @@ class Dataset():
     # Bivariate fit
     
     
-    def bivar_fit(self, vars, plot=True, labels=None, N=None):
-        data = self.dataframe[vars]
+    def bivar_fit(self, vars=None, N=None):
+
+        # Checking the number of variables to compare
+        if self._ncols == 1:
+            raise ValueError('Only one variable selected, cannot perform \
+                bivariate analysis.')
+        elif self._ncols > 2 and vars is None:
+            raise ValueError('More than two variables selected, please \
+                provide the variables to compare through the vars argument.')
+        elif vars is not None and len(vars) > 2:
+            raise ValueError('Cannot compare more than two variables.')
+        elif vars is None and self._ncols == 2:
+            self._bivariate_vars = self._cols
+        else:
+            self._bivariate_vars = vars 
+        
+        data = self.dataframe[self._bivariate_vars]
 
         mean = np.mean(data, axis=0)
         cov = np.cov(data, rowvar=0)
@@ -379,31 +398,32 @@ class Dataset():
             N = self.dataframe.shape[0]
 
         r_norm = st.multivariate_normal.rvs(mean, cov, N)
-        df_r_norm = pd.DataFrame(r_norm, columns=vars)
+        self._bivar_r_norm = pd.DataFrame(r_norm, columns=vars)
 
-        if plot:
-            self.bivar_plot(vars, labels=labels)
-
-        return df_r_norm
+        return self._bivar_r_norm
 
 
-    def bivar_plot(self, vars, labels=None):
-        plt.figure(figsize=(6, 6))
-        plt.plot(self.dataframe[vars[0]], self.dataframe[vars[1]], ".")
-        plt.grid()
-        if labels:
-            plt.xlabel(labels[0])
-            plt.ylabel(labels[1])
-        plt.show()
+    def bivar_plot(self):
+        fig, ax = plt.subplots(1, 1, figsize=(6, 6))
+        
+        ax.plot(self.dataframe[self._bivariate_vars[0]], 
+                self.dataframe[self._bivariate_vars[1]], ".")
 
-        h = sns.jointplot(data=self.dataframe, x=vars[0], y=vars[1])
-        if labels:
-            h.set_axis_labels(labels[0], labels[1])
+        ax.set_xlabel(self._bivariate_vars[0])
+        ax.set_ylabel(self._bivariate_vars[1])
+
+        ax.grid(True)
+
+        h = sns.jointplot(data=self.dataframe, x=self._bivariate_vars[0],
+                          y=self._bivariate_vars[1])
+        h.set_axis_labels(xlabel=self._bivariate_vars[0],
+                          ylabel=self._bivariate_vars[1])
         plt.gcf().tight_layout()
 
-        g = sns.displot(data=self.dataframe, x=vars[0], y=vars[1], kind='kde')
-        if labels:
-            g.set_axis_labels(labels[0], labels[1])
+        g = sns.displot(data=self.dataframe, x=self._bivariate_vars[0],
+                        y=self._bivariate_vars[1], kind='kde')
+        g.set_axis_labels(xlabel=self._bivariate_vars[0],
+                          ylabel=self._bivariate_vars[1])
         plt.gcf().tight_layout()
 
         plt.show()
