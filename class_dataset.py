@@ -1,4 +1,3 @@
-from multiprocessing.sharedctypes import Value
 import pandas as pd
 import numpy as np
 import matplotlib.pyplot as plt
@@ -8,8 +7,16 @@ import warnings
 
 from IPython.display import display
 from matplotlib.patches import Rectangle
+from matplotlib.axes import Axes
+from matplotlib.figure import Figure
+from typing import Sequence, TypeVar, Type, Optional, Tuple, List, Union
+from datetime import datetime
 
 from class_fitresults import FitResults
+
+# Types for documentation
+T = TypeVar('T', bound='Dataset')
+Ax = Type[plt.Axes]
 
 # TODO: add docstrings everywhere
 
@@ -20,14 +27,29 @@ class Dataset():
     # Constructors
 
     
-    def __init__(self, dataframe, cols=None, col_labels=None):
+    def __init__(self, dataframe: pd.DataFrame, cols: Optional[List[str]]=None,
+                 col_labels: Optional[List[str]]=None) -> None:
+        """
+        Parameters
+        ----------
+        dataframe : pandas.core.frame.DataFrame
+            Dataframe that holds the data. Has to contain one datetime column.
+        cols : list[str], default None
+            List of columns to use. If None, use all columns.
+        col_labels : list[str], default None
+            List of optional descriptive labels to use for the selected columns.
+            If none, use default column names.
+        """
+        
         # Main dataframe
         self.dataframe = dataframe
         
         # Columns to use
         self._time_col = self.find_datetime_col(self.dataframe)
-        self._cols = list(dataframe.drop(columns=self._time_col).columns)
-        print(self._cols)
+        if cols is not None:
+            self._cols = cols
+        else:
+            self._cols = list(dataframe.drop(columns=self._time_col).columns)
 
         # Descriptive columns labels
         self._col_labels = self._cols.copy()
@@ -54,8 +76,29 @@ class Dataset():
             self.results[_col] = FitResults()
 
     @classmethod
-    def import_from_filename(cls, filename, var_time, cols=None,
-                             col_labels=None):
+    def import_from_filename(cls: Type[T], filename: str, var_time: str,
+                             cols: Optional[List[str]] = None,
+                             col_labels: Optional[List[str]] = None) -> T:
+        """ Create a Dataset object from a given filename.
+        
+        Parameters
+        ----------
+        filename : str
+            Filename or path of the dataset.
+        var_time : str
+            Name of the column containing the timestamps.
+        cols : list[str], default None
+            List of columns to use. If None, use all columns.
+        col_labels : list[str], default None
+            List of optional descriptive labels to use for the selected columns.
+            If none, use default column names.
+
+        Returns
+        -------
+        Dataset
+            Dataset object constructed from the given filename.
+        """
+
         dataframe = pd.read_csv(filename, parse_dates=[var_time])
         if cols:
             cols_used = [var_time] + cols
@@ -64,8 +107,33 @@ class Dataset():
 
 
     @classmethod
-    def import_from_surfdrive_path(cls, link, path, var_time, cols=None,
-                                   col_labels=None):
+    def import_from_surfdrive_path(cls: Type[T], link: str, path: str,
+                                   var_time: str,
+                                   cols: Optional[List[str]]=None,
+                                   col_labels: Optional[List[str]]=None) -> T:
+        """ Create a Dataset object from a SURFdrive public access and link to 
+        a directory and a path of subfolders.
+        
+        Parameters
+        ----------
+        link : str
+            SURFdrive public access link.
+        path : str
+            Path to the subfolders.
+        var_time : str
+            Name of the column containing the timestamps.
+        cols : list[str], default None
+            List of columns to use. If None, use all columns.
+        col_labels : list[str], default None
+            List of optional descriptive labels to use for the selected columns.
+            If none, use default column names.
+
+        Returns
+        -------
+        Dataset
+            Dataset object constructed from the given path.
+        """
+
         link += r'/download?path=%2F'
         path_lst = path.split('/')
         for s in path_lst[:-1]:
@@ -76,8 +144,29 @@ class Dataset():
 
 
     @classmethod
-    def import_from_surfdrive_file(cls, link, var_time, cols=None,
-                                   col_labels=None):
+    def import_from_surfdrive_file(cls: Type[T], link: str, var_time: str,
+                                   cols: Optional[List[str]]=None,
+                                   col_labels: Optional[List[str]]=None) -> T:
+        """ Create a Dataset object from a SURFdrive public access link.        
+
+        Parameters
+        ----------
+        link : str
+            SURFdrive public access link to dataset.
+        var_time : str
+            Name of the column containing the timestamps.
+        cols : list[str], default None
+            List of columns to use. If None, use all columns.
+        col_labels : list[str], default None
+            List of optional descriptive labels to use for the selected columns.
+            If none, use default column names.
+
+        Returns
+        -------
+        Dataset
+            Dataset object constructed from the given link.
+        """
+        
         link += "/download"
         return cls.import_from_filename(link, var_time, cols, col_labels)
 
@@ -85,7 +174,15 @@ class Dataset():
     # Cleaning dataset
 
     # TODO: see issue #5 on GitLab  
-    def clean_dataset(self, z_score_threshold=5):
+    def clean_dataset(self, z_score_threshold: Union[float, int] = 5) -> None:
+        """Cleans the dataset by removing NaN's and outliers. Outliers are 
+        removed based on the z-score method.
+
+        Parameters
+        ----------
+        z_score_threshold : float or int
+            Threshold of the Z-score to determine outliers.
+        """
         dataframe = self.dataframe.dropna().reset_index(drop=True)
 
         for col_name in self._cols:
@@ -96,18 +193,40 @@ class Dataset():
             col_out_idx = (
                 col[np.abs(z_score) > z_score_threshold].index.values.tolist())
             dataframe = dataframe.drop(index=col_out_idx).reset_index(drop=True)
-                
+   
         self.dataframe = dataframe
 
 
     # Data exploration
 
 
-    def data_summary(self):
+    def data_summary(self) -> None:
+        """Displays a summary of the dataset.
+        """
+
         display(self.dataframe[self._cols].describe())
         
 
-    def time_plot(self, together=False, zoom=None, **kwargs):
+    def time_plot(self, together: Optional[bool] = False,
+                  zoom: Optional[Tuple[datetime]] = None, **kwargs):
+        """Plot the data against time.
+        
+        Parameters
+        ----------
+        together: bool, default False
+            Plot the data together in one plot. If None, make a subplot for 
+            every column.
+        zoom: tuple[datetime], default None
+            Datetime range to zoom into.
+
+        Returns
+        -------
+        matplotlib.figure.Figure
+            Figure object
+        matplotlib.axes.Axes or sequence of matplotlib.axes.Axes
+            Axes object or Axes objects, if ```together=False```
+        """
+        
         figsize = (10, 10) if together else (10, 5*len(self._cols))
 
         ax = self.dataframe.plot(x=self._time_col,
@@ -122,10 +241,26 @@ class Dataset():
                           ylabel=self._col_labels,
                           **kwargs)
         
-        return plt.gcf(), ax
+        return plt.gcf(), plt.gca().get_axes()
 
 
-    def hist_plot(self, together=False, **kwargs):
+    def hist_plot(self, together: Optional[bool] = False, **kwargs):
+        """Make a histogram plot of the data.
+        
+        Parameters
+        ----------
+        together: bool, default False
+            Plot the data together in one plot. If None, make a subplot for 
+            every column.
+
+        Returns
+        -------
+        matplotlib.figure.Figure
+            Figure object
+        matplotlib.axes.Axes or numpy.ndarray of matplotlib.axes.Axes
+            Axes object or Axes objects, if ```together=False```
+        """
+
         figsize = (10, 10) if together else (10, 5*len(self._cols))
 
         ax = self.dataframe.plot(y=self._cols,
@@ -144,6 +279,16 @@ class Dataset():
         
 
     def plot_ecdf(self, **kwargs):
+        """Make a plot of the Empirical Cumulative Distribution Function (ECDF)
+        of the selected columns.
+
+        Returns
+        -------
+        matplotlib.figure.Figure
+            Figure object
+        numpy.ndarray[matplotlib.figure.SubFigure]
+            Numpy array containing subfigures.
+        """
 
         # Make figure scale in height with the number of columns selected
         fig = plt.figure(figsize=(25, 5*self._ncols))
@@ -178,10 +323,19 @@ class Dataset():
             ax[3].set_title('$1- F(x)$. Y axis log scale')
             ax[3].grid()
         
-        return plt.gcf(), ax
+        return fig, subfigs
 
 
-    def fit_distribution(self, distribution='all'):
+    def fit_distribution(self,
+                         distribution: Union[str, List[str]] = 'all') -> None:
+        """Fit a distribution to the selected columns.
+        
+        Parameters
+        ----------
+        distribution : str or list[str], default 'all'
+            Name of the distribution to fit. Options are Normal, Exponential,
+            Logistic or Lognormal. If 'all', fit all of the above.
+        """
 
         # Make list of distritbutions to fit
         if distribution == 'all':
@@ -216,6 +370,15 @@ class Dataset():
         
 
     def plot_fitted_distributions(self, **kwargs):
+        """Plot the distributions that are fitted using ```fit_distribution```.
+
+        Returns
+        -------
+        matplotlib.figure.Figure
+            Figure object.
+        numpy.ndarray[matplotlib.figure.SubFigure]
+            Numpy array containing subfigures.
+        """
         
         # Number of fitted distributions
         ndists = len(self.results[self._cols[0]].distributions_fitted())
@@ -271,14 +434,37 @@ class Dataset():
     # Extreme Value Analysis
     
     # TODO: let the user select different periods for different columns
-    def create_ev(self, period):
+    def create_ev(self, period: str) -> pd.DataFrame:
+        """Creates a dataframe with blockwise extreme values from a given
+        resampling period.
+        
+        Parameters
+        ----------
+        period : str
+            The period to use for the blocks. Supported: [W]eekly, [A]nnual,
+            [D]aily
+            
+        Returns
+        -------
+        pandas.core.frame.DataFrame
+            Dataframe with the extreme values calculated over the given period
+        """
+        
         self.extremes = self.dataframe.resample(period[0].upper(),
                                                 on=self._time_col)\
                                                 .max().reset_index(drop=True)
         return self.extremes
 
         
-    def fit_ev(self):
+    def fit_ev(self) -> Tuple[float, ...]:
+        """Fits a Generalized Extreme Value (GEV) distribution to the calculated 
+        extreme values.
+        
+        Returns
+        -------
+        tuple[float, ...] 
+            Tuple containing the shape parameters of the GEV.
+        """
 
         if self.extremes is None:
             raise Exception("No extreme values computed yet! Use create_ev \
@@ -304,6 +490,15 @@ class Dataset():
 
             
     def plot_ev(self, **kwargs):
+        """Plot the fitted GEV's.
+        
+        Returns
+        -------
+        matplotlib.figure.Figure
+            Figure object.
+        numpy.ndarray[Sequence[matplotlib.axes.Axes]]
+            Numpy array with subplot axes.
+        """
         
         #if 'Extreme' not in self.results[self._cols[0]].distributions_fitted:
         #    raise Exception("No extreme value distribution fitted yet!")
@@ -327,6 +522,15 @@ class Dataset():
 
 
     def QQ_plot(self, **kwargs):
+        """Plot QQ-plots of the fitted distributions.
+
+        Returns
+        -------
+        matplotlib.figure.Figure
+            Figure object.
+        numpy.ndarray[matplotlib.figure.SubFigure]
+            Numpy array containing subfigures.
+        """
         
         # Number of fitted distributions
         ndists = len(self.results[self._cols[0]].distributions_fitted())
@@ -369,13 +573,30 @@ class Dataset():
                 # Set grid
                 ax[j].grid()
                 
-        return fig
+        return fig, subfigs
 
     
     # Bivariate fit
     
     
-    def bivar_fit(self, vars=None, N=None):
+    def bivar_fit(self, vars: Optional[List[str, str]] = None,
+                  N: Optional[int] = None) -> pd.DataFrame:
+        """Fits a bivariate normal distribution, including covariance, on two
+        variable from a dataframe, and draw samples from this fit.
+
+        Parameters
+        ----------
+        vars : list[str, str], default None
+            List containing the names of the columns to fit the distribution to.
+        N : int, default None
+            Number of samples to draw. If None, equal to the length of the 
+            dataset.
+            
+        Returns
+        -------
+        pandas.core.DataFrame
+            Dataframe containing the drawn samples.
+        """
 
         # Checking the number of variables to compare
         if self._ncols == 1:
@@ -405,7 +626,9 @@ class Dataset():
         return self._bivar_r_norm
 
 
-    def bivar_plot(self):
+    def bivar_plot(self) -> None:
+        """Creates several plots of the columns selected in ```bivar_fit```.
+        """
         fig, ax = plt.subplots(1, 1, figsize=(6, 6))
         
         ax.plot(self.dataframe[self._bivariate_vars[0]], 
@@ -428,10 +651,18 @@ class Dataset():
                           ylabel=self._bivariate_vars[1])
         plt.gcf().tight_layout()
 
-        plt.show()
 
-
-    def cov_cor(self):
+    def cov_cor(self) -> Tuple[np.ndarray, float]:
+        """Calculates the covariance and Pearson's correlation coefficient of
+        the columns selected in ```bivar_fit```.
+        
+        Returns
+        -------
+        numpy.ndarray
+            Covariance matrix.
+        float
+            Pearson's r coefficient.
+        """
         self._cov = np.cov(self.dataframe[self._bivariate_vars[0]],
                            self.dataframe[self._bivariate_vars[1]])
         self._cor, _ = st.pearsonr(self.dataframe[self._bivariate_vars[0]], 
@@ -439,7 +670,24 @@ class Dataset():
         return self._cov, self._cor
     
     
-    def plot_and_or_probabilities(self, quantiles):
+    def plot_and_or_probabilities(self, quantiles: List[float, float],
+                                  plot: Optional[bool] = False)\
+                                      -> Tuple[float, float]:
+        """Computes probabilities of one or both given variables in a dataframe
+        exceeding a given quantile, and optionally creating a plot of this.
+
+        Parameters
+        ----------
+        quantiles : list[float, float]
+            Quantiles to calculate.
+        plot : bool, default False
+            Whether to plot the fitted distribution.
+            
+        Returns
+        -------
+        tuple[float, float]
+            The probabilities of the AND and OR scenarios, respectively.
+        """
         df_quantiles = [self.dataframe[self._bivariate_vars[0]]\
                             .quantile(quantiles[0]),
                         self.dataframe[self._bivariate_vars[1]]\
@@ -456,25 +704,29 @@ class Dataset():
         p_and = len(and_sc)/len(self.dataframe) 
         p_or = len(or_sc)/len(self.dataframe)
 
-        fig, ax = plt.subplots(1, 2, sharex=True, sharey=True, figsize=(20, 5))
-        ax[0].scatter(self.dataframe[self._bivariate_vars[0]],
-                      self.dataframe[self._bivariate_vars[1]])
-        ax[0].scatter(and_sc[self._bivariate_vars[0]],
-                      and_sc[self._bivariate_vars[1]])
-        ax[0].axvline(df_quantiles[0], color='k')
-        ax[0].axhline(df_quantiles[1], color='k')
-        ax[0].set_title(f'AND scenario, probability {p_and:.2f}')
-        ax[0].grid()
+        if plot:
+            fig, ax = plt.subplots(1, 2, sharex=True, sharey=True,
+                                   figsize=(20, 5))
+            ax[0].scatter(self.dataframe[self._bivariate_vars[0]],
+                          self.dataframe[self._bivariate_vars[1]])
+            ax[0].scatter(and_sc[self._bivariate_vars[0]],
+                          and_sc[self._bivariate_vars[1]])
+            ax[0].axvline(df_quantiles[0], color='k')
+            ax[0].axhline(df_quantiles[1], color='k')
+            ax[0].set_title(f'AND scenario, probability {p_and:.2f}')
+            ax[0].grid()
 
-        ax[1].scatter(self.dataframe[self._bivariate_vars[0]],
-                      self.dataframe[self._bivariate_vars[1]])
-        ax[1].scatter(or_sc[self._bivariate_vars[0]],
-                      or_sc[self._bivariate_vars[1]])
-        ax[1].axvline(df_quantiles[0], color='k')
-        ax[1].axhline(df_quantiles[1], color='k')
-        ax[1].set_title(f'OR scenario, probability {p_or:.2f}')
-        ax[1].grid()
+            ax[1].scatter(self.dataframe[self._bivariate_vars[0]],
+                          self.dataframe[self._bivariate_vars[1]])
+            ax[1].scatter(or_sc[self._bivariate_vars[0]],
+                          or_sc[self._bivariate_vars[1]])
+            ax[1].axvline(df_quantiles[0], color='k')
+            ax[1].axhline(df_quantiles[1], color='k')
+            ax[1].set_title(f'OR scenario, probability {p_or:.2f}')
+            ax[1].grid()
     
+        return p_and, p_or
+
 
     # Static methods
 
@@ -533,7 +785,7 @@ class Dataset():
     
 
     @staticmethod
-    def set_TUDstyle():
+    def set_TUDstyle() -> dict[str, str]:
         TUcolor = {"cyan": "#00A6D6",
                    "darkgreen": "#009B77",
                    "purple": "#6F1D77",
