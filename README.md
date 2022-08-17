@@ -14,12 +14,12 @@ Welcome to version 2.0 of the Bivariate package. This README is very incomplete,
   
   ```conda activate bivariate```
 
-- Clone the repository:
+- Download the package:
   
-  ```git clone https://gitlab.tudelft.nl/mude/bivariate_package.git```
+  ```https://gitlab.tudelft.nl/mude/bivariate_package/-/raw/main/dist/bivariate-2.0.0-py3-none-any.whl```
 
-- Change directory into the newly created folder. Then, install the package using PIP:
+- Then, install the package using PIP:
   
-  ```pip install .```
+  ```pip install bivariate-2.0.0-py3-none-any.whl```
 
 If you encounter any issues during installation, please contact me (Caspar), or make a GitLab issue (preferred).
