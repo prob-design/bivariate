@@ -9,16 +9,13 @@ from IPython.display import display
 from matplotlib.patches import Rectangle
 from matplotlib.axes import Axes
 from matplotlib.figure import Figure
-from typing import Sequence, TypeVar, Type, Optional, Tuple, List, Union
+from typing import Sequence, TypeVar, Type, Optional, Tuple, List, Union, Dict
 from datetime import datetime
 
-from class_fitresults import FitResults
+from bivariate.class_fitresults import FitResults
 
 # Types for documentation
 T = TypeVar('T', bound='Dataset')
-Ax = Type[plt.Axes]
-
-# TODO: add docstrings everywhere
 
 class Dataset():
 
@@ -241,7 +238,7 @@ class Dataset():
                           ylabel=self._col_labels,
                           **kwargs)
         
-        return plt.gcf(), plt.gca().get_axes()
+        return plt.gcf(), ax
 
 
     def hist_plot(self, together: Optional[bool] = False, **kwargs):
@@ -579,7 +576,7 @@ class Dataset():
     # Bivariate fit
     
     
-    def bivar_fit(self, vars: Optional[List[str, str]] = None,
+    def bivar_fit(self, vars: Optional[List[str]] = None,
                   N: Optional[int] = None) -> pd.DataFrame:
         """Fits a bivariate normal distribution, including covariance, on two
         variable from a dataframe, and draw samples from this fit.
@@ -670,7 +667,7 @@ class Dataset():
         return self._cov, self._cor
     
     
-    def plot_and_or_probabilities(self, quantiles: List[float, float],
+    def plot_and_or_probabilities(self, quantiles: List[float],
                                   plot: Optional[bool] = False)\
                                       -> Tuple[float, float]:
         """Computes probabilities of one or both given variables in a dataframe
@@ -785,7 +782,7 @@ class Dataset():
     
 
     @staticmethod
-    def set_TUDstyle() -> dict[str, str]:
+    def set_TUDstyle() -> Dict[str, str]:
         TUcolor = {"cyan": "#00A6D6",
                    "darkgreen": "#009B77",
                    "purple": "#6F1D77",

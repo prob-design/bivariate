@@ -9,7 +9,7 @@ from IPython.display import display
 from matplotlib.patches import Rectangle
 from matplotlib.axes import Axes
 from matplotlib.figure import Figure
-from typing import Sequence, TypeVar, Type, Optional, Tuple, List, Union
+from typing import Sequence, TypeVar, Type, Optional, Tuple, List, Union, Dict
 from datetime import datetime
 
 from bivariate.class_fitresults import FitResults
@@ -782,7 +782,7 @@ class Dataset():
     
 
     @staticmethod
-    def set_TUDstyle() -> dict[str, str]:
+    def set_TUDstyle() -> Dict[str, str]:
         TUcolor = {"cyan": "#00A6D6",
                    "darkgreen": "#009B77",
                    "purple": "#6F1D77",
