@@ -4,12 +4,13 @@ Created on Wed May 25 15:29:42 2022
 
 @author: jelle
 """
-import pack_init as init
-import pack_exploration as expl
-import pack_univariate as univ
-import pack_gof as gof
-import pack_extreme as ext
-import pack_bivariate as bivar
+
+import data_setup as init
+import data_exploration as expl
+import univariate_fit as univ
+import goodness_of_fit as gof
+import extreme_value_analysis as ext
+import bivariate_fit as bivar
 
 test_file = "https://surfdrive.surf.nl/files/index.php/s/m7KhpkIRkBJm6QB"
 test_folder = "https://surfdrive.surf.nl/files/index.php/s/Wg6SWc38zn8jqVg"
