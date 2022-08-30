@@ -236,6 +236,8 @@ class Dataset():
                           ls='none',
                           grid=True,
                           ylabel=self._col_labels,
+                          markeredgecolor='k',
+                          markeredgewidth=0.25,
                           **kwargs)
         
         return plt.gcf(), ax
@@ -267,6 +269,8 @@ class Dataset():
                           title=self._col_labels if not together else None,
                           legend=together,
                           grid=True,
+                          edgecolor='k',
+                          linewidth=1.0,
                           **kwargs)
 
         return plt.gcf(), ax
@@ -625,11 +629,17 @@ class Dataset():
 
     def bivar_plot(self) -> None:
         """Creates several plots of the columns selected in ```bivar_fit```.
+        See 'Notes' section of Seaborn documentation page for kdeplot() for 
+        guidance about smoothin with the Gaussian kernel (bw_adjust is a 
+        multiplicative factor, increasing --> smoother).
         """
         fig, ax = plt.subplots(1, 1, figsize=(6, 6))
         
         ax.plot(self.dataframe[self._bivariate_vars[0]], 
-                self.dataframe[self._bivariate_vars[1]], ".")
+                self.dataframe[self._bivariate_vars[1]], "o",
+                markersize=4,
+                markeredgecolor='k',
+                markeredgewidth=0.25,)
 
         ax.set_xlabel(self._bivariate_vars[0])
         ax.set_ylabel(self._bivariate_vars[1])
@@ -637,13 +647,15 @@ class Dataset():
         ax.grid(True)
 
         h = sns.jointplot(data=self.dataframe, x=self._bivariate_vars[0],
-                          y=self._bivariate_vars[1])
+                          y=self._bivariate_vars[1],
+                          joint_kws=dict(edgecolor='k', linewidth=0.25),
+                          marginal_kws=dict(edgecolor='k', linewidth=1.0))
         h.set_axis_labels(xlabel=self._bivariate_vars[0],
                           ylabel=self._bivariate_vars[1])
         plt.gcf().tight_layout()
 
         g = sns.displot(data=self.dataframe, x=self._bivariate_vars[0],
-                        y=self._bivariate_vars[1], kind='kde')
+                        y=self._bivariate_vars[1], kind='kde', bw_adjust=2)
         g.set_axis_labels(xlabel=self._bivariate_vars[0],
                           ylabel=self._bivariate_vars[1])
         plt.gcf().tight_layout()
