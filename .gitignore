@@ -3,3 +3,4 @@
 data_waves_currents.csv
 __pycache__/
 *.idea
+*.csv
