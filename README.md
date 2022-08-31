@@ -24,5 +24,16 @@ Welcome to version 2.0 of the Bivariate package. This README is very incomplete,
 
 If you encounter any issues during installation, please contact me (Caspar), or make a GitLab issue (preferred).
 
+## Working on the package
+
+Robert does the following to test and make updates to the package. Feel free to add suggestions or another section if you do something different:
+- fetch and pull from repo
+- work in root directory on a notebook (generally `class_test.ipynb`)
+- make changes in package files in `bivariate` directory
+- restart notebook kernel and rerun cells to check changes
+- `add`, `commit`, `push` as needed for package files, notebook, `README.md` (separately)
+
+## Additional information
+
 *Note from Robert on August 28, 2022 (also added to `bivariate notebooks` repo `README.md`):*  
 Caspar's example from the `bivariate package` uses `wget` to download and install files. This is easy to install on Mac or Linux OS, but Windows users need to download and install `wget` from [here](https://sourceforge.net/projects/gnuwin32/files/wget/1.11.4-1/wget-1.11.4-1-setup.exe/download?use_mirror=excellmedia), then add the executable directory to the path. [This page](https://techcult.com/how-to-download-install-and-use-wget-for-windows-10/) gives good instructions, except there is a mistake: you should add to the path under 'System variables,' not 'User variables for `user`' (the bottom part of the Environmental Variables window.
