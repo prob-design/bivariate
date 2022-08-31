@@ -819,19 +819,20 @@ class Dataset():
 
     @staticmethod
     def set_TUDstyle() -> Dict[str, str]:
-        TUcolor = {"cyan": "#00A6D6",
-                   "darkgreen": "#009B77",
-                   "purple": "#6F1D77",
-                   "darkred": "#A50034",
-                   "darkblue": "#0C2340",
-                   "orange": "#EC6842",
-                   "green": "#6CC24A",
-                   "lightcyan": "#00B8C8",
-                   "red": "#E03C31",
-                   "pink": "#EF60A3",
-                   "yellow": "#FFB81C",
-                   "blue": "#0076C2"}
+        TUcolor = {"cyan":"#00A6D6",
+                   "pink":"#EF60A3",
+                   "green":"#6CC24A",
+                   "yellow":"#FFB81C",
+                   "blue":"#0076C2",
+                   "purple":"#6F1D77",
+                   "lightcyan":"#00B8C8",
+                   "orange":"#EC6842",
+                   "darkgreen":"#009B77",
+                   "darkred":"#A50034",
+                   "red":"#E03C31",
+                   "darkblue":"#0C2340"}
         plt.rcParams.update({'axes.prop_cycle': plt.cycler(color=TUcolor.values()),
                              'font.size': 16, "lines.linewidth": 4})
         return TUcolor
+    
     
