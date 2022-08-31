@@ -655,7 +655,7 @@ class Dataset():
         plt.gcf().tight_layout()
 
         g = sns.displot(data=self.dataframe, x=self._bivariate_vars[0],
-                        y=self._bivariate_vars[1], kind='kde', bw_adjust=2)
+                        y=self._bivariate_vars[1], kind='kde', bw_adjust=2.0)
         g.set_axis_labels(xlabel=self._bivariate_vars[0],
                           ylabel=self._bivariate_vars[1])
         plt.gcf().tight_layout()
