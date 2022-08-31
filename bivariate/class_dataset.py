@@ -717,21 +717,45 @@ class Dataset():
             fig, ax = plt.subplots(1, 2, sharex=True, sharey=True,
                                    figsize=(20, 5))
             ax[0].scatter(self.dataframe[self._bivariate_vars[0]],
-                          self.dataframe[self._bivariate_vars[1]])
+                          self.dataframe[self._bivariate_vars[1]],
+                          marker='o',
+                          s=16,
+                          c='cyan',
+                          edgecolors='k',
+                          linewidths=0.25)
             ax[0].scatter(and_sc[self._bivariate_vars[0]],
-                          and_sc[self._bivariate_vars[1]])
+                          and_sc[self._bivariate_vars[1]],
+                          marker='o',
+                          s=16,
+                          c='red',
+                          edgecolors='k',
+                          linewidths=0.25)
             ax[0].axvline(df_quantiles[0], color='k')
             ax[0].axhline(df_quantiles[1], color='k')
             ax[0].set_title(f'AND scenario, probability {p_and:.2f}')
+            ax[0].set_xlabel(self._bivariate_vars[0])
+            ax[0].set_ylabel(self._bivariate_vars[1])
             ax[0].grid()
 
             ax[1].scatter(self.dataframe[self._bivariate_vars[0]],
-                          self.dataframe[self._bivariate_vars[1]])
+                          self.dataframe[self._bivariate_vars[1]],
+                          marker='o',
+                          s=16,
+                          c='cyan',
+                          edgecolors='k',
+                          linewidths=0.25)
             ax[1].scatter(or_sc[self._bivariate_vars[0]],
-                          or_sc[self._bivariate_vars[1]])
+                          or_sc[self._bivariate_vars[1]],
+                          marker='o',
+                          s=16,
+                          c='red',
+                          edgecolors='k',
+                          linewidths=0.25)
             ax[1].axvline(df_quantiles[0], color='k')
             ax[1].axhline(df_quantiles[1], color='k')
             ax[1].set_title(f'OR scenario, probability {p_or:.2f}')
+            ax[1].set_xlabel(self._bivariate_vars[0])
+            ax[1].set_ylabel(self._bivariate_vars[1])
             ax[1].grid()
     
         return p_and, p_or
