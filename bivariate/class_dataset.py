@@ -636,10 +636,10 @@ class Dataset():
         fig, ax = plt.subplots(1, 1, figsize=(6, 6))
         
         ax.plot(self.dataframe[self._bivariate_vars[0]], 
-                self.dataframe[self._bivariate_vars[1]], "o",
+                self.dataframe[self._bivariate_vars[1]], 'o',
                 markersize=4,
                 markeredgecolor='k',
-                markeredgewidth=0.25,)
+                markeredgewidth=0.25)
 
         ax.set_xlabel(self._bivariate_vars[0])
         ax.set_ylabel(self._bivariate_vars[1])
