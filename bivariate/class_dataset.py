@@ -33,8 +33,13 @@ class Dataset():
             Dataframe that holds the data. Has to contain one datetime column.
         cols : list[str], default None
             List of columns to use. If None, use all columns.
-        col_labels : list[str], default None
+        col_labels : list[str], list[list[str], list[str]] or dict, default None
             List of optional descriptive labels to use for the selected columns.
+            Long labels are used for titles and axes, short labels for legends.
+            If list[str], use given strings as both
+            If list[list[str], list[str]], use first list as long labels, 
+            second list for short labels
+            If dict, key 'long' and 'short' should point to list[str]
             If none, use default column names.
         """
         
@@ -50,10 +55,19 @@ class Dataset():
 
         # Descriptive columns labels
         self._col_labels = {}
-        
         self._col_labels["short"] = self._cols.copy()
-        self._col_labels["long"] = self._cols.copy()
-        if type(col_labels) == list:
+        self._col_labels["long"] = self._cols.copy() # nothing given
+        
+        if type(col_labels) == dict:
+            if len(col_labels["short"]) == len(self._cols) and \
+            len(col_labels["long"]) == len(self._cols):
+                self._col_labels["long"] = col_labels["long"]
+                self._col_labels["short"] = col_labels["short"]
+            else:
+                warnings.warn("No. of col_labels does not match no. of cols,\
+                    using defaults from dataframe", UserWarning)
+        
+        elif type(col_labels[0]) == str: # list[str] given, use for both
             if len(col_labels) == len(self._cols):
                 self._col_labels["long"] = col_labels
                 self._col_labels["short"] = col_labels
@@ -61,8 +75,18 @@ class Dataset():
                 warnings.warn("No. of col_labels does not match no. of cols,\
                     using defaults from dataframe", UserWarning)
         
-        elif type(col_labels) == dict:
-            pass
+        elif type(col_labels[0]) == list:
+            if len(col_labels[0]) == len(self._cols) and \
+            len(col_labels[1]) == len(self._cols):
+                self._col_labels["long"] = col_labels[0]
+                self._col_labels["short"] = col_labels[1]
+            else:
+                warnings.warn("No. of col_labels does not match no. of cols,\
+                    using defaults from dataframe", UserWarning)
+        
+        else:
+            warnings.warn("Given col_labels does not have the right format,\
+                using defaults from dataframe", UserWarning)
 
         # Helpers
         self._ncols = len(self._cols)
