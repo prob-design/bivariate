@@ -25,7 +25,7 @@ class Dataset():
 
     
     def __init__(self, dataframe: pd.DataFrame, cols: Optional[List[str]]=None,
-                 col_labels: Optional[List[str]]=None) -> None:
+                 col_labels=None) -> None:
         """
         Parameters
         ----------
@@ -49,13 +49,20 @@ class Dataset():
             self._cols = list(dataframe.drop(columns=self._time_col).columns)
 
         # Descriptive columns labels
-        self._col_labels = self._cols.copy()
-        if col_labels:
+        self._col_labels = {}
+        
+        self._col_labels["short"] = self._cols.copy()
+        self._col_labels["long"] = self._cols.copy()
+        if type(col_labels) == list:
             if len(col_labels) == len(self._cols):
-                self._col_labels = col_labels
+                self._col_labels["long"] = col_labels
+                self._col_labels["short"] = col_labels
             else:
                 warnings.warn("No. of col_labels does not match no. of cols,\
                     using defaults from dataframe", UserWarning)
+        
+        elif type(col_labels) == dict:
+            pass
 
         # Helpers
         self._ncols = len(self._cols)
@@ -235,17 +242,16 @@ class Dataset():
                           marker='o',
                           ls='none',
                           grid=True,
-                          # ylabel=self._col_labels,
                           markeredgecolor='k',
                           markeredgewidth=0.25,
                           **kwargs)
         if not together:
             for i, subplot in enumerate(ax):
-                subplot.set_ylabel(self._col_labels[i])
-                subplot.legend([self._col_labels[i]])
+                subplot.set_ylabel(self._col_labels["long"][i])
+                subplot.legend([self._col_labels["short"][i]])
         
         else:
-            ax.set_ylabel(self._col_labels)
+            ax.set_ylabel(self._col_labels["long"])
         
         return plt.gcf(), ax
 
@@ -273,7 +279,7 @@ class Dataset():
                           kind='hist',
                           subplots=not together,
                           figsize=figsize,
-                          title=self._col_labels if not together else None,
+                          title=self._col_labels["long"] if not together else None,
                           legend=together,
                           grid=True,
                           edgecolor='k',
@@ -312,7 +318,7 @@ class Dataset():
             
             # Make subplots inside the subfig
             ax = subfigs[i].subplots(1, 4)
-            subfigs[i].suptitle(self._col_labels[i])
+            subfigs[i].suptitle(self._col_labels["long"][i])
             
             ax[0].step(x, f, linewidth=4, **kwargs)  # Plot F(x)
             ax[0].set_title('$F(x)$')
@@ -400,7 +406,7 @@ class Dataset():
 
             # Add subplot for every fitted dist to subfigure
             ax = subfigs[i].subplots(1, ndists)
-            subfigs[i].suptitle(self._col_labels[i])
+            subfigs[i].suptitle(self._col_labels["long"][i])
 
             # Calculate ECDF for the current variable
             x, f = self.ecdf(self.dataframe[_col])
@@ -520,7 +526,7 @@ class Dataset():
             ax[i].plot(x, f, label="Empricial distribution", **kwargs)
             ax[i].plot(x, fit_cdf, label="Fitted extreme distribution",
                        **kwargs)
-            ax[i].set_xlabel(self._col_labels[i])
+            ax[i].set_xlabel(self._col_labels["long"][i])
             ax[i].set_ylabel("F(X)")
             ax[i].legend()
             ax[i].grid()
@@ -551,7 +557,7 @@ class Dataset():
 
             # Add subplot for every fitted dist to subfigure
             ax = subfigs[i].subplots(1, ndists)
-            subfigs[i].suptitle(self._col_labels[i])
+            subfigs[i].suptitle(self._col_labels["long"][i])
 
             # Calculate ECDF for the current variable
             x, f = self.ecdf(self.dataframe[_col])
