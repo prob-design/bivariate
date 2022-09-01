@@ -520,7 +520,7 @@ class Dataset():
             ax[i].plot(x, f, label="Empricial distribution", **kwargs)
             ax[i].plot(x, fit_cdf, label="Fitted extreme distribution",
                        **kwargs)
-            ax[i].set_xlabel("Value")
+            ax[i].set_xlabel(self._col_labels[i])
             ax[i].set_ylabel("F(X)")
             ax[i].legend()
             ax[i].grid()
@@ -551,7 +551,7 @@ class Dataset():
 
             # Add subplot for every fitted dist to subfigure
             ax = subfigs[i].subplots(1, ndists)
-            subfigs[i].suptitle(self._cols[i])
+            subfigs[i].suptitle(self._col_labels[i])
 
             # Calculate ECDF for the current variable
             x, f = self.ecdf(self.dataframe[_col])
