@@ -235,10 +235,16 @@ class Dataset():
                           marker='o',
                           ls='none',
                           grid=True,
-                          ylabel=self._col_labels,
+                          # ylabel=self._col_labels,
                           markeredgecolor='k',
                           markeredgewidth=0.25,
                           **kwargs)
+        if not together:
+            for i, subplot in enumerate(ax):
+                subplot.set_ylabel(self._col_labels[i])
+        
+        else:
+            ax.set_ylabel(self._col_labels)
         
         return plt.gcf(), ax
 
