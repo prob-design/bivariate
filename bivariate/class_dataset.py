@@ -242,6 +242,7 @@ class Dataset():
         if not together:
             for i, subplot in enumerate(ax):
                 subplot.set_ylabel(self._col_labels[i])
+                subplot.legend([self._col_labels[i]])
         
         else:
             ax.set_ylabel(self._col_labels)
