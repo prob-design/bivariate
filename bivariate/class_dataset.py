@@ -400,7 +400,7 @@ class Dataset():
 
             # Add subplot for every fitted dist to subfigure
             ax = subfigs[i].subplots(1, ndists)
-            subfigs[i].suptitle(self._cols[i])
+            subfigs[i].suptitle(self._col_labels[i])
 
             # Calculate ECDF for the current variable
             x, f = self.ecdf(self.dataframe[_col])
