@@ -18,6 +18,14 @@ Welcome to version 2.0 of the Bivariate package. This README is very incomplete,
   
   ```https://gitlab.tudelft.nl/mude/bivariate_package/-/raw/main/dist/bivariate-2.0.0-py3-none-any.whl```
 
+- Alternatively, paste these commands in a notebook cell:
+
+  ```from wget import download```
+  
+  ```download('https://gitlab.tudelft.nl/mude/bivariate_package/-/raw/main/dist/bivariate-2.0.0-py3-none-any.whl')```
+
+  ```!pip install bivariate-2.0.0-py3-none-any.whl```
+
 - Then, install the package using PIP:
   
   ```pip install bivariate-2.0.0-py3-none-any.whl```
