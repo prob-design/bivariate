@@ -628,9 +628,9 @@ class Dataset():
 
 
     def bivar_plot(self) -> None:
-        """Creates several plots of the columns selected in ```bivar_fit```.
-        See 'Notes' section of Seaborn documentation page for kdeplot() for 
-        guidance about smoothin with the Gaussian kernel (bw_adjust is a 
+        """Creates several plots of the columns selected in `bivar_fit`.
+        See 'Notes' section of Seaborn documentation page for `kdeplot()` for 
+        guidance about smoothing with the Gaussian kernel (`bw_adjust` is a 
         multiplicative factor, increasing --> smoother).
         """
         fig, ax = plt.subplots(1, 1, figsize=(6, 6))
@@ -648,6 +648,7 @@ class Dataset():
 
         h = sns.jointplot(data=self.dataframe, x=self._bivariate_vars[0],
                           y=self._bivariate_vars[1],
+                          s=16,
                           joint_kws=dict(edgecolor='k', linewidth=0.25),
                           marginal_kws=dict(edgecolor='k', linewidth=1.0))
         h.set_axis_labels(xlabel=self._bivariate_vars[0],
@@ -663,7 +664,7 @@ class Dataset():
 
     def cov_cor(self) -> Tuple[np.ndarray, float]:
         """Calculates the covariance and Pearson's correlation coefficient of
-        the columns selected in ```bivar_fit```.
+        the columns selected in `bivar_fit`.
         
         Returns
         -------
