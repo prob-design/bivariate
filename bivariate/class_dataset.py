@@ -651,6 +651,15 @@ class Dataset():
             self._bivariate_vars = vars 
         
         data = self.dataframe[self._bivariate_vars]
+        
+        self._bivariate_labels = {"long":[], "short":[]}
+        
+        for i, col in enumerate(self._cols):
+            if col in self._bivariate_vars:
+                self._bivariate_labels["long"].append(
+                    self._col_labels["long"][i])
+                self._bivariate_labels["short"].append(
+                    self._col_labels["short"][i])
 
         mean = np.mean(data, axis=0)
         cov = np.cov(data, rowvar=0)
@@ -678,8 +687,8 @@ class Dataset():
                 markeredgecolor='k',
                 markeredgewidth=0.25)
 
-        ax.set_xlabel(self._bivariate_vars[0])
-        ax.set_ylabel(self._bivariate_vars[1])
+        ax.set_xlabel(self._bivariate_labels["long"][0])
+        ax.set_ylabel(self._bivariate_labels["long"][1])
 
         ax.grid(True)
 
@@ -687,14 +696,17 @@ class Dataset():
                           y=self._bivariate_vars[1],
                           joint_kws=dict(edgecolor='k', linewidth=0.25),
                           marginal_kws=dict(edgecolor='k', linewidth=1.0))
-        h.set_axis_labels(xlabel=self._bivariate_vars[0],
-                          ylabel=self._bivariate_vars[1])
+        h.set_axis_labels(xlabel=self._bivariate_labels["long"][0],
+                          ylabel=self._bivariate_labels["long"][1])
         plt.gcf().tight_layout()
 
         g = sns.displot(data=self.dataframe, x=self._bivariate_vars[0],
                         y=self._bivariate_vars[1], kind='kde', bw_adjust=2.0)
-        g.set_axis_labels(xlabel=self._bivariate_vars[0],
-                          ylabel=self._bivariate_vars[1])
+        # g.set_axis_labels(xlabel=self._bivariate_labels["long"][0],
+        #                   ylabel=self._bivariate_labels["long"][1])
+        # does not work, using plt instead
+        plt.xlabel(xlabel=self._bivariate_labels["long"][0])
+        plt.ylabel(self._bivariate_labels["long"][1])
         plt.gcf().tight_layout()
 
 
@@ -770,8 +782,8 @@ class Dataset():
             ax[0].axvline(df_quantiles[0], color='k')
             ax[0].axhline(df_quantiles[1], color='k')
             ax[0].set_title(f'AND scenario, probability {p_and:.2f}')
-            ax[0].set_xlabel(self._bivariate_vars[0])
-            ax[0].set_ylabel(self._bivariate_vars[1])
+            ax[0].set_xlabel(self._bivariate_labels["long"][0])
+            ax[0].set_ylabel(self._bivariate_labels["long"][1])
             ax[0].grid()
 
             ax[1].scatter(self.dataframe[self._bivariate_vars[0]],
