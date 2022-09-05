@@ -38,7 +38,7 @@ Robert does the following to test and make updates to the package. Feel free to 
 - fetch and pull from repo
 - work in root directory on a notebook (generally `class_test.ipynb`)
 - make changes in package files in `bivariate` directory
-- restart notebook kernel and rerun cells to check changes
+- restart notebook kernel and rerun cells to check changes (see Issue #12)
 - `add`, `commit`, `push` as needed for package files, notebook, `README.md` (separately)
 
 ## Additional information
@@ -48,9 +48,9 @@ It's too complicated to make a robust installation file right now since we are m
 *The pull/copy solution:*  
 - pull bivariate package  
 - copy bivariate package/bivariate to local directory where you have your notebook  
-  - example: from terminal use cp ../'bivariate package'/bivariate .  
+  - example: from terminal use `cp -r ../'bivariate package'/bivariate .`  
   - example assumes you are working in a notebook in a directory that is 'parallel' to your bivariate package repo  
-- use from bivariate.class_dataset import Dataset to import package in notebook  
+- use from `bivariate.class_dataset import Dataset` to import package in notebook  
 
 *Note from Robert on August 28, 2022 (also added to `bivariate notebooks` repo `README.md`):*  
 Caspar's example from the `bivariate package` uses `wget` to download and install files. This is easy to install on Mac or Linux OS, but Windows users need to download and install `wget` from [here](https://sourceforge.net/projects/gnuwin32/files/wget/1.11.4-1/wget-1.11.4-1-setup.exe/download?use_mirror=excellmedia), then add the executable directory to the path. [This page](https://techcult.com/how-to-download-install-and-use-wget-for-windows-10/) gives good instructions, except there is a mistake: you should add to the path under 'System variables,' not 'User variables for `user`' (the bottom part of the Environmental Variables window.
