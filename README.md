@@ -7,44 +7,36 @@ Welcome to version 2.0 of the Bivariate package. This README is very incomplete,
 
 ## Installation
 
-Option 1: create a fresh conda environment with at least Python 3.10 and PIP:
-  
-    ```conda create -n bivariate python=3.10 pip```
+*Make sure you have the Python module `wget` installed (from terminal: `pip install wget`). If the repo does not stay public, the wheel file should be downloaded manually from GitLab.*  
+Paste these commands in a notebook cell:  
+```
+from wget import download  
+download('https://gitlab.tudelft.nl/mude/bivariate_package/-/raw/main/dist/bivariate-2.0.0-py3-none-any.whl')  
+!pip install bivariate-2.0.0-py3-none-any.whl
+```
 
-- Activate the new environment:
-  
-  ```conda activate bivariate```
+Technically you can also create and activate a fresh conda environment with at least Python 3.10 and `pip`, prior to running the above, with these two commands:  
+```
+conda create -n bivariate python=3.10 pip  
+conda activate bivariate  
+```
 
-- Download the package:
-  
-  ```https://gitlab.tudelft.nl/mude/bivariate_package/-/raw/main/dist/bivariate-2.0.0-py3-none-any.whl```
-
-Option 2: paste these commands in a notebook cell:  
-*Make sure you have the Python module `wget` installed (from terminal: `pip install wget`).*
-
-  ```from wget import download```
-  
-  ```download('https://gitlab.tudelft.nl/mude/bivariate_package/-/raw/main/dist/bivariate-2.0.0-py3-none-any.whl')```
-
-  ```!pip install bivariate-2.0.0-py3-none-any.whl```
-
-Then, install the package using PIP:
-  
-  ```pip install bivariate-2.0.0-py3-none-any.whl```
-
-If you encounter any issues during installation, please comment Mattermost or make a GitLab issue (preferred).
 
 ## Updating the package
 
-*A future version will automatically regenerate the wheel file (Issue #14).*
+*A future version will automatically regenerate the wheel file (Issue #15).*
 
 ### Reinstall on `PATH`
 
-The following command will update your local installation of the package. Make sure you check two things:
+If you installed the package as instructed above, the following command will update your local installation (first two commands are same as original installation). Make sure you check two things:
 - the wheel file on GitLab has been updated since your most recent (re)installation
-- the wheel file is not already in your working directory (`wget` will not overwrite the old file)
+- the wheel file is not already in your working directory (`wget` will not overwrite the old file)  
 
-```!pip install --force-reinstall --no-deps bivariate-2.0.0-py3-none-any.whl```
+```
+from wget import download  
+download('https://gitlab.tudelft.nl/mude/bivariate_package/-/raw/main/dist/bivariate-2.0.0-py3-none-any.whl')  
+!pip install --force-reinstall --no-deps bivariate-2.0.0-py3-none-any.whl
+```
 
 ### Update in local working directory
 
