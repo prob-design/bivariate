@@ -6,7 +6,8 @@
 Welcome to version 2.0 of the Bivariate package. This README is very incomplete, as it only provides some installation instructions. An example notebook will follow, where the new functionality will be demonstrated.
 
 ## Installation
-- Recommended: create a fresh conda environment with at least Python 3.10 and PIP:
+
+Option 1: create a fresh conda environment with at least Python 3.10 and PIP:
   
     ```conda create -n bivariate python=3.10 pip```
 
@@ -18,7 +19,8 @@ Welcome to version 2.0 of the Bivariate package. This README is very incomplete,
   
   ```https://gitlab.tudelft.nl/mude/bivariate_package/-/raw/main/dist/bivariate-2.0.0-py3-none-any.whl```
 
-- Alternatively, paste these commands in a notebook cell:
+Option 2: paste these commands in a notebook cell:  
+*Make sure you have the Python module `wget` installed (from terminal: `pip install wget`).*
 
   ```from wget import download```
   
@@ -26,31 +28,41 @@ Welcome to version 2.0 of the Bivariate package. This README is very incomplete,
 
   ```!pip install bivariate-2.0.0-py3-none-any.whl```
 
-- Then, install the package using PIP:
+Then, install the package using PIP:
   
   ```pip install bivariate-2.0.0-py3-none-any.whl```
 
-If you encounter any issues during installation, please contact me (Caspar), or make a GitLab issue (preferred).
+If you encounter any issues during installation, please comment Mattermost or make a GitLab issue (preferred).
 
-## Working on the package
+## Updating the package
 
-Robert does the following to test and make updates to the package. Feel free to add suggestions or another section if you do something different:
-- fetch and pull from repo
-- work in root directory on a notebook (generally `class_test.ipynb`)
-- make changes in package files in `bivariate` directory
-- restart notebook kernel and rerun cells to check changes (see Issue #12)
-- `add`, `commit`, `push` as needed for package files, notebook, `README.md` (separately)
+*A future version will automatically regenerate the wheel file (Issue #14).*
 
-## Additional information
+### Reinstall on `PATH`
 
-It's too complicated to make a robust installation file right now since we are making a lot of small changes. Recommended working method is to use the *pull/copy* solution (see Issue #14 and Mattermost from Sep 3)
+The following command will update your local installation of the package. Make sure you check two things:
+- the wheel file on GitLab has been updated since your most recent (re)installation
+- the wheel file is not already in your working directory (`wget` will not overwrite the old file)
 
-*The pull/copy solution:*  
-- pull bivariate package  
+```!pip install --force-reinstall --no-deps bivariate-2.0.0-py3-none-any.whl```
+
+### Update in local working directory
+
+Copy the directory `bivariate` to your local working directory and import as:
+```from bivariate.class_dataset import Dataset```
+
+This is a more detailed description of a working method when you are actively making changes to the package and using those changes in another repo:  
+- fetch and pull from `bivariate` repo
 - copy bivariate package/bivariate to local directory where you have your notebook  
   - example: from terminal use `cp -r ../'bivariate package'/bivariate .`  
   - example assumes you are working in a notebook in a directory that is 'parallel' to your bivariate package repo  
-- use from `bivariate.class_dataset import Dataset` to import package in notebook  
+- work in root directory, typically on a notebook (generally `class_test.ipynb`)
+- use `from bivariate.class_dataset import Dataset` to import package in notebook 
+- make changes in package files in `bivariate` directory
+- restart notebook kernel and rerun cells to check changes (*for better solution, see Issue #12*)
+- `add`, `commit`, `push` as needed for package files, notebook, `README.md` (separately)
 
-*Note from Robert on August 28, 2022 (also added to `bivariate notebooks` repo `README.md`):*  
-Caspar's example from the `bivariate package` uses `wget` to download and install files. This is easy to install on Mac or Linux OS, but Windows users need to download and install `wget` from [here](https://sourceforge.net/projects/gnuwin32/files/wget/1.11.4-1/wget-1.11.4-1-setup.exe/download?use_mirror=excellmedia), then add the executable directory to the path. [This page](https://techcult.com/how-to-download-install-and-use-wget-for-windows-10/) gives good instructions, except there is a mistake: you should add to the path under 'System variables,' not 'User variables for `user`' (the bottom part of the Environmental Variables window.
+## Update the wheel file
+
+To update the package distribution (wheel file, `*.whl`) run the following from the terminal and push the changes:
+```python setup.py bdist_wheel```
