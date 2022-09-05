@@ -236,6 +236,8 @@ class Dataset():
                           ls='none',
                           grid=True,
                           ylabel=self._col_labels,
+                          markeredgecolor='k',
+                          markeredgewidth=0.25,
                           **kwargs)
         
         return plt.gcf(), ax
@@ -267,6 +269,8 @@ class Dataset():
                           title=self._col_labels if not together else None,
                           legend=together,
                           grid=True,
+                          edgecolor='k',
+                          linewidth=1.0,
                           **kwargs)
 
         return plt.gcf(), ax
@@ -624,12 +628,18 @@ class Dataset():
 
 
     def bivar_plot(self) -> None:
-        """Creates several plots of the columns selected in ```bivar_fit```.
+        """Creates several plots of the columns selected in `bivar_fit`.
+        See 'Notes' section of Seaborn documentation page for `kdeplot()` for 
+        guidance about smoothing with the Gaussian kernel (`bw_adjust` is a 
+        multiplicative factor, increasing --> smoother).
         """
         fig, ax = plt.subplots(1, 1, figsize=(6, 6))
         
         ax.plot(self.dataframe[self._bivariate_vars[0]], 
-                self.dataframe[self._bivariate_vars[1]], ".")
+                self.dataframe[self._bivariate_vars[1]], 'o',
+                markersize=4,
+                markeredgecolor='k',
+                markeredgewidth=0.25)
 
         ax.set_xlabel(self._bivariate_vars[0])
         ax.set_ylabel(self._bivariate_vars[1])
@@ -637,13 +647,16 @@ class Dataset():
         ax.grid(True)
 
         h = sns.jointplot(data=self.dataframe, x=self._bivariate_vars[0],
-                          y=self._bivariate_vars[1])
+                          y=self._bivariate_vars[1],
+                          s=16,
+                          joint_kws=dict(edgecolor='k', linewidth=0.25),
+                          marginal_kws=dict(edgecolor='k', linewidth=1.0))
         h.set_axis_labels(xlabel=self._bivariate_vars[0],
                           ylabel=self._bivariate_vars[1])
         plt.gcf().tight_layout()
 
         g = sns.displot(data=self.dataframe, x=self._bivariate_vars[0],
-                        y=self._bivariate_vars[1], kind='kde')
+                        y=self._bivariate_vars[1], kind='kde', bw_adjust=2.0)
         g.set_axis_labels(xlabel=self._bivariate_vars[0],
                           ylabel=self._bivariate_vars[1])
         plt.gcf().tight_layout()
@@ -651,7 +664,7 @@ class Dataset():
 
     def cov_cor(self) -> Tuple[np.ndarray, float]:
         """Calculates the covariance and Pearson's correlation coefficient of
-        the columns selected in ```bivar_fit```.
+        the columns selected in `bivar_fit`.
         
         Returns
         -------
@@ -705,21 +718,45 @@ class Dataset():
             fig, ax = plt.subplots(1, 2, sharex=True, sharey=True,
                                    figsize=(20, 5))
             ax[0].scatter(self.dataframe[self._bivariate_vars[0]],
-                          self.dataframe[self._bivariate_vars[1]])
+                          self.dataframe[self._bivariate_vars[1]],
+                          marker='o',
+                          s=16,
+                          c='cyan',
+                          edgecolors='k',
+                          linewidths=0.25)
             ax[0].scatter(and_sc[self._bivariate_vars[0]],
-                          and_sc[self._bivariate_vars[1]])
+                          and_sc[self._bivariate_vars[1]],
+                          marker='o',
+                          s=16,
+                          c='red',
+                          edgecolors='k',
+                          linewidths=0.25)
             ax[0].axvline(df_quantiles[0], color='k')
             ax[0].axhline(df_quantiles[1], color='k')
             ax[0].set_title(f'AND scenario, probability {p_and:.2f}')
+            ax[0].set_xlabel(self._bivariate_vars[0])
+            ax[0].set_ylabel(self._bivariate_vars[1])
             ax[0].grid()
 
             ax[1].scatter(self.dataframe[self._bivariate_vars[0]],
-                          self.dataframe[self._bivariate_vars[1]])
+                          self.dataframe[self._bivariate_vars[1]],
+                          marker='o',
+                          s=16,
+                          c='cyan',
+                          edgecolors='k',
+                          linewidths=0.25)
             ax[1].scatter(or_sc[self._bivariate_vars[0]],
-                          or_sc[self._bivariate_vars[1]])
+                          or_sc[self._bivariate_vars[1]],
+                          marker='o',
+                          s=16,
+                          c='red',
+                          edgecolors='k',
+                          linewidths=0.25)
             ax[1].axvline(df_quantiles[0], color='k')
             ax[1].axhline(df_quantiles[1], color='k')
             ax[1].set_title(f'OR scenario, probability {p_or:.2f}')
+            ax[1].set_xlabel(self._bivariate_vars[0])
+            ax[1].set_ylabel(self._bivariate_vars[1])
             ax[1].grid()
     
         return p_and, p_or
@@ -783,19 +820,20 @@ class Dataset():
 
     @staticmethod
     def set_TUDstyle() -> Dict[str, str]:
-        TUcolor = {"cyan": "#00A6D6",
-                   "darkgreen": "#009B77",
-                   "purple": "#6F1D77",
-                   "darkred": "#A50034",
-                   "darkblue": "#0C2340",
-                   "orange": "#EC6842",
-                   "green": "#6CC24A",
-                   "lightcyan": "#00B8C8",
-                   "red": "#E03C31",
-                   "pink": "#EF60A3",
-                   "yellow": "#FFB81C",
-                   "blue": "#0076C2"}
+        TUcolor = {"cyan":"#00A6D6",
+                   "pink":"#EF60A3",
+                   "green":"#6CC24A",
+                   "yellow":"#FFB81C",
+                   "blue":"#0076C2",
+                   "purple":"#6F1D77",
+                   "lightcyan":"#00B8C8",
+                   "orange":"#EC6842",
+                   "darkgreen":"#009B77",
+                   "darkred":"#A50034",
+                   "red":"#E03C31",
+                   "darkblue":"#0C2340"}
         plt.rcParams.update({'axes.prop_cycle': plt.cycler(color=TUcolor.values()),
                              'font.size': 16, "lines.linewidth": 4})
         return TUcolor
+    
     
