@@ -25,7 +25,7 @@ class Dataset():
 
     
     def __init__(self, dataframe: pd.DataFrame, cols: Optional[List[str]]=None,
-                 col_labels: Optional[List[str]]=None) -> None:
+                 col_labels=None) -> None:
         """
         Parameters
         ----------
@@ -33,8 +33,13 @@ class Dataset():
             Dataframe that holds the data. Has to contain one datetime column.
         cols : list[str], default None
             List of columns to use. If None, use all columns.
-        col_labels : list[str], default None
+        col_labels : list[str], list[list[str], list[str]] or dict, default None
             List of optional descriptive labels to use for the selected columns.
+            Long labels are used for titles and axes, short labels for legends.
+            If list[str], use given strings as both
+            If list[list[str], list[str]], use first list as long labels, 
+            second list for short labels
+            If dict, key 'long' and 'short' should point to list[str]
             If none, use default column names.
         """
         
@@ -49,13 +54,39 @@ class Dataset():
             self._cols = list(dataframe.drop(columns=self._time_col).columns)
 
         # Descriptive columns labels
-        self._col_labels = self._cols.copy()
-        if col_labels:
-            if len(col_labels) == len(self._cols):
-                self._col_labels = col_labels
+        self._col_labels = {}
+        self._col_labels["short"] = self._cols.copy()
+        self._col_labels["long"] = self._cols.copy() # nothing given
+        
+        if type(col_labels) == dict:
+            if len(col_labels["short"]) == len(self._cols) and \
+            len(col_labels["long"]) == len(self._cols):
+                self._col_labels["long"] = col_labels["long"]
+                self._col_labels["short"] = col_labels["short"]
             else:
                 warnings.warn("No. of col_labels does not match no. of cols,\
                     using defaults from dataframe", UserWarning)
+        
+        elif type(col_labels[0]) == str: # list[str] given, use for both
+            if len(col_labels) == len(self._cols):
+                self._col_labels["long"] = col_labels
+                self._col_labels["short"] = col_labels
+            else:
+                warnings.warn("No. of col_labels does not match no. of cols,\
+                    using defaults from dataframe", UserWarning)
+        
+        elif type(col_labels[0]) == list:
+            if len(col_labels[0]) == len(self._cols) and \
+            len(col_labels[1]) == len(self._cols):
+                self._col_labels["long"] = col_labels[0]
+                self._col_labels["short"] = col_labels[1]
+            else:
+                warnings.warn("No. of col_labels does not match no. of cols,\
+                    using defaults from dataframe", UserWarning)
+        
+        else:
+            warnings.warn("Given col_labels does not have the right format,\
+                using defaults from dataframe", UserWarning)
 
         # Helpers
         self._ncols = len(self._cols)
@@ -235,10 +266,16 @@ class Dataset():
                           marker='o',
                           ls='none',
                           grid=True,
-                          ylabel=self._col_labels,
                           markeredgecolor='k',
                           markeredgewidth=0.25,
                           **kwargs)
+        if not together:
+            for i, subplot in enumerate(ax):
+                subplot.set_ylabel(self._col_labels["long"][i])
+                subplot.legend([self._col_labels["short"][i]])
+        
+        else:
+            ax.set_ylabel(self._col_labels["long"])
         
         return plt.gcf(), ax
 
@@ -266,7 +303,7 @@ class Dataset():
                           kind='hist',
                           subplots=not together,
                           figsize=figsize,
-                          title=self._col_labels if not together else None,
+                          title=self._col_labels["long"] if not together else None,
                           legend=together,
                           grid=True,
                           edgecolor='k',
@@ -305,7 +342,7 @@ class Dataset():
             
             # Make subplots inside the subfig
             ax = subfigs[i].subplots(1, 4)
-            subfigs[i].suptitle(self._col_labels[i])
+            subfigs[i].suptitle(self._col_labels["long"][i])
             
             ax[0].step(x, f, linewidth=4, **kwargs)  # Plot F(x)
             ax[0].set_title('$F(x)$')
@@ -393,7 +430,7 @@ class Dataset():
 
             # Add subplot for every fitted dist to subfigure
             ax = subfigs[i].subplots(1, ndists)
-            subfigs[i].suptitle(self._cols[i])
+            subfigs[i].suptitle(self._col_labels["long"][i])
 
             # Calculate ECDF for the current variable
             x, f = self.ecdf(self.dataframe[_col])
@@ -513,7 +550,7 @@ class Dataset():
             ax[i].plot(x, f, label="Empricial distribution", **kwargs)
             ax[i].plot(x, fit_cdf, label="Fitted extreme distribution",
                        **kwargs)
-            ax[i].set_xlabel("Value")
+            ax[i].set_xlabel(self._col_labels["long"][i])
             ax[i].set_ylabel("F(X)")
             ax[i].legend()
             ax[i].grid()
@@ -544,7 +581,7 @@ class Dataset():
 
             # Add subplot for every fitted dist to subfigure
             ax = subfigs[i].subplots(1, ndists)
-            subfigs[i].suptitle(self._cols[i])
+            subfigs[i].suptitle(self._col_labels["long"][i])
 
             # Calculate ECDF for the current variable
             x, f = self.ecdf(self.dataframe[_col])
@@ -614,6 +651,15 @@ class Dataset():
             self._bivariate_vars = vars 
         
         data = self.dataframe[self._bivariate_vars]
+        
+        self._bivariate_labels = {"long":[], "short":[]}
+        
+        for i, col in enumerate(self._cols):
+            if col in self._bivariate_vars:
+                self._bivariate_labels["long"].append(
+                    self._col_labels["long"][i])
+                self._bivariate_labels["short"].append(
+                    self._col_labels["short"][i])
 
         mean = np.mean(data, axis=0)
         cov = np.cov(data, rowvar=0)
@@ -641,8 +687,8 @@ class Dataset():
                 markeredgecolor='k',
                 markeredgewidth=0.25)
 
-        ax.set_xlabel(self._bivariate_vars[0])
-        ax.set_ylabel(self._bivariate_vars[1])
+        ax.set_xlabel(self._bivariate_labels["long"][0])
+        ax.set_ylabel(self._bivariate_labels["long"][1])
 
         ax.grid(True)
 
@@ -651,14 +697,17 @@ class Dataset():
                           s=16,
                           joint_kws=dict(edgecolor='k', linewidth=0.25),
                           marginal_kws=dict(edgecolor='k', linewidth=1.0))
-        h.set_axis_labels(xlabel=self._bivariate_vars[0],
-                          ylabel=self._bivariate_vars[1])
+        h.set_axis_labels(xlabel=self._bivariate_labels["long"][0],
+                          ylabel=self._bivariate_labels["long"][1])
         plt.gcf().tight_layout()
 
         g = sns.displot(data=self.dataframe, x=self._bivariate_vars[0],
                         y=self._bivariate_vars[1], kind='kde', bw_adjust=2.0)
-        g.set_axis_labels(xlabel=self._bivariate_vars[0],
-                          ylabel=self._bivariate_vars[1])
+        # g.set_axis_labels(xlabel=self._bivariate_labels["long"][0],
+        #                   ylabel=self._bivariate_labels["long"][1])
+        # does not work, using plt instead
+        plt.xlabel(xlabel=self._bivariate_labels["long"][0])
+        plt.ylabel(self._bivariate_labels["long"][1])
         plt.gcf().tight_layout()
 
 
@@ -734,8 +783,8 @@ class Dataset():
             ax[0].axvline(df_quantiles[0], color='k')
             ax[0].axhline(df_quantiles[1], color='k')
             ax[0].set_title(f'AND scenario, probability {p_and:.2f}')
-            ax[0].set_xlabel(self._bivariate_vars[0])
-            ax[0].set_ylabel(self._bivariate_vars[1])
+            ax[0].set_xlabel(self._bivariate_labels["long"][0])
+            ax[0].set_ylabel(self._bivariate_labels["long"][1])
             ax[0].grid()
 
             ax[1].scatter(self.dataframe[self._bivariate_vars[0]],
