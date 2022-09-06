@@ -490,7 +490,8 @@ class Dataset():
         
         self.extremes = self.dataframe.resample(period[0].upper(),
                                                 on=self._time_col)\
-                                                .max().reset_index(drop=True)
+                                                .max().dropna()\
+                                                .reset_index(drop=True)
         return self.extremes
 
         
@@ -597,9 +598,6 @@ class Dataset():
                 sp_dist = self.scipy_dist(dist)
                 st.probplot(self.dataframe[_col], fit_pars, sp_dist,
                             plot = ax[j])
-                
-                # Plot the ECDF 
-                #ax[j].plot([0, 1], [0, 1], '--', color='k')
 
                 # Set labels
                 ax[j].set_xlabel("Value")
