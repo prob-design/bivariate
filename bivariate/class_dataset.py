@@ -1,3 +1,4 @@
+from multiprocessing.sharedctypes import Value
 import pandas as pd
 import numpy as np
 import matplotlib.pyplot as plt
@@ -677,6 +678,11 @@ class Dataset():
         guidance about smoothing with the Gaussian kernel (`bw_adjust` is a 
         multiplicative factor, increasing --> smoother).
         """
+
+        if self._bivariate_vars == None:
+            raise ValueError('No bivariate distribution fitted yet, please\
+ use bivar_fit() first.')
+
         fig, ax = plt.subplots(1, 1, figsize=(6, 6))
         
         ax.plot(self.dataframe[self._bivariate_vars[0]], 
