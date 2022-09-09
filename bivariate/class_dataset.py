@@ -65,7 +65,10 @@ index.')
         self._col_labels["short"] = self._cols.copy()
         self._col_labels["long"] = self._cols.copy() # nothing given
         
-        if type(col_labels) == dict:
+        if not col_labels:
+            pass
+        
+        elif type(col_labels) == dict:
             if len(col_labels["short"]) == len(self._cols) and \
             len(col_labels["long"]) == len(self._cols):
                 self._col_labels["long"] = col_labels["long"]
