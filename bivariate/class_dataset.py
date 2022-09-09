@@ -25,8 +25,12 @@ class Dataset():
     # Constructors
 
     
-    def __init__(self, dataframe: pd.DataFrame, cols: Optional[List[str]]=None,
-                 col_labels=None) -> None:
+    def __init__(
+        self,
+        dataframe: pd.DataFrame,
+        cols: Optional[List[str]] = None,
+        col_labels = None,
+    ) -> None:
         """
         Parameters
         ----------
@@ -116,9 +120,14 @@ class Dataset():
             self.results[_col] = FitResults()
 
     @classmethod
-    def import_from_filename(cls: Type[T], filename: str, var_time: str,
-                             cols: Optional[List[str]] = None,
-                             col_labels: Optional[List[str]] = None) -> T:
+    def import_from_filename(
+        cls: Type[T],
+        filename: str,
+        var_time: str,
+        cols: Optional[List[str]] = None,
+        col_labels: Optional[List[str]] = None,
+        **kwargs: str
+    ) -> T:
         """ Create a Dataset object from a given filename.
         
         Parameters
@@ -139,18 +148,28 @@ class Dataset():
             Dataset object constructed from the given filename.
         """
 
-        dataframe = pd.read_csv(filename, parse_dates=[var_time])
+        dataframe = pd.read_csv(filename, parse_dates=var_time, **kwargs)
+
         if cols:
-            cols_used = [var_time] + cols
+            if isinstance(var_time, str):
+                cols_used = [var_time] + cols
+            else:
+                cols_used = cols
             dataframe = dataframe[cols_used]
+
         return cls(dataframe, cols, col_labels)
 
 
     @classmethod
-    def import_from_surfdrive_path(cls: Type[T], link: str, path: str,
-                                   var_time: str,
-                                   cols: Optional[List[str]]=None,
-                                   col_labels: Optional[List[str]]=None) -> T:
+    def import_from_surfdrive_path(
+        cls: Type[T],
+        link: str,
+        path: str,
+        var_time: Optional[str] = None,
+        cols: Optional[List[str]] = None,
+        col_labels: Optional[List[str]] = None,
+        **kwargs: str
+    ) -> T:
         """ Create a Dataset object from a SURFdrive public access and link to 
         a directory and a path of subfolders.
         
@@ -180,13 +199,25 @@ class Dataset():
             link += s + "%2F"
         link = link[:-3]
         link += "&files=" + path_lst[-1]
-        return cls.import_from_filename(link, var_time, cols, col_labels)
+
+        return cls.import_from_filename(
+            link,
+            var_time,
+            cols,
+            col_labels,
+            **kwargs
+        )
 
 
     @classmethod
-    def import_from_surfdrive_file(cls: Type[T], link: str, var_time: str,
-                                   cols: Optional[List[str]]=None,
-                                   col_labels: Optional[List[str]]=None) -> T:
+    def import_from_surfdrive_file(
+        cls: Type[T],
+        link: str,
+        var_time: Optional[str] = None,
+        cols: Optional[List[str]] = None,
+        col_labels: Optional[List[str]] = None,
+        **kwargs: str
+    ) -> T:
         """ Create a Dataset object from a SURFdrive public access link.        
 
         Parameters
@@ -208,7 +239,13 @@ class Dataset():
         """
         
         link += "/download"
-        return cls.import_from_filename(link, var_time, cols, col_labels)
+        return cls.import_from_filename(
+            link,
+            var_time,
+            cols,
+            col_labels,
+            **kwargs
+        )
 
 
     # Cleaning dataset
