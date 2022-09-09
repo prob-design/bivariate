@@ -48,17 +48,14 @@ class Dataset():
         self.dataframe = dataframe
         
         # Columns to use
-        try:
-            self._time_col = self.find_datetime_col(self.dataframe)
-        except: 
-            warnings.warn('No datetime column found in data, resorting to \
-index.')
-            self._time_col = None
+        self._time_col = self.find_datetime_col(self.dataframe)
         
         if cols is not None:
             self._cols = cols
-        else:
+        elif self._time_col is not None:
             self._cols = list(dataframe.drop(columns=self._time_col).columns)
+        else:
+            self._cols = list(dataframe.columns)
 
         # Descriptive columns labels
         self._col_labels = {}
@@ -100,6 +97,11 @@ index.')
 
         # Helpers
         self._ncols = len(self._cols)
+
+        if self._time_col is not None:
+            self._has_timecol = True
+        else:
+            self._has_timecol = False
 
         # To be computed
         self.extremes = None
@@ -497,6 +499,9 @@ index.')
         pandas.core.frame.DataFrame
             Dataframe with the extreme values calculated over the given period
         """
+
+        if self._has_timecol is False:
+            raise Exception('No datetime column found.')
         
         self.extremes = self.dataframe.resample(period[0].upper(),
                                                 on=self._time_col)\
@@ -833,8 +838,6 @@ index.')
             if pd.api.types.is_datetime64_any_dtype(dataframe[col]):
                 return col
                 
-        raise Exception('Datetime column not found')
-    
     
     @staticmethod
     def aic_bic(pdf, k, n):
