@@ -48,7 +48,13 @@ class Dataset():
         self.dataframe = dataframe
         
         # Columns to use
-        self._time_col = self.find_datetime_col(self.dataframe)
+        try:
+            self._time_col = self.find_datetime_col(self.dataframe)
+        except: 
+            warnings.warn('No datetime column found in data, resorting to \
+index.')
+            self._time_col = None
+        
         if cols is not None:
             self._cols = cols
         else:
@@ -823,6 +829,8 @@ class Dataset():
         for col in dataframe:
             if pd.api.types.is_datetime64_any_dtype(dataframe[col]):
                 return col
+                
+        raise Exception('Datetime column not found')
     
     
     @staticmethod
