@@ -1,17 +1,17 @@
-from multiprocessing.sharedctypes import Value
-import pandas as pd
-import numpy as np
-import matplotlib.pyplot as plt
-import seaborn as sns
-import scipy.stats as st
 import warnings
 
+import matplotlib.pyplot as plt
+import numpy as np
+import pandas as pd
+import scipy.stats as st
+import seaborn as sns
+
+from datetime import datetime
 from IPython.display import display
-from matplotlib.patches import Rectangle
 from matplotlib.axes import Axes
 from matplotlib.figure import Figure
-from typing import Sequence, TypeVar, Type, Optional, Tuple, List, Union, Dict
-from datetime import datetime
+from matplotlib.patches import Rectangle
+from typing import Any, Dict, List, Optional, Sequence, Tuple, Type, TypeVar, Union
 
 from bivariate.class_fitresults import FitResults
 
@@ -123,10 +123,10 @@ class Dataset():
     def import_from_filename(
         cls: Type[T],
         filename: str,
-        var_time: str,
+        var_time: Optional[str] = None,
         cols: Optional[List[str]] = None,
         col_labels: Optional[List[str]] = None,
-        **kwargs: str
+        **kwargs
     ) -> T:
         """ Create a Dataset object from a given filename.
         
@@ -134,28 +134,41 @@ class Dataset():
         ----------
         filename : str
             Filename or path of the dataset.
-        var_time : str
-            Name of the column containing the timestamps.
+        var_time : str, default None
+            Name of the column containing the timestamps. If none, don't use a
+            time column.
         cols : list[str], default None
             List of columns to use. If None, use all columns.
         col_labels : list[str], default None
             List of optional descriptive labels to use for the selected columns.
             If none, use default column names.
-
+        **kwargs
+            Optional keyword arguments to be passed to Pandas `read_csv`.
+            
         Returns
         -------
         Dataset
             Dataset object constructed from the given filename.
         """
-
-        dataframe = pd.read_csv(filename, parse_dates=var_time, **kwargs)
-
-        if cols:
-            if isinstance(var_time, str):
-                cols_used = [var_time] + cols
+        if isinstance(var_time, str):
+            if cols:
+                var_time = [var_time]
+                cols_used = var_time + cols
             else:
-                cols_used = cols
-            dataframe = dataframe[cols_used]
+                cols_used = None
+        elif cols:
+            var_time = False
+            cols_used = cols
+        else:
+            var_time = False
+            cols_used = None
+
+        dataframe = pd.read_csv(
+            filename,
+            parse_dates=var_time,
+            usecols=cols_used,
+            **kwargs
+        )
 
         return cls(dataframe, cols, col_labels)
 
@@ -168,7 +181,7 @@ class Dataset():
         var_time: Optional[str] = None,
         cols: Optional[List[str]] = None,
         col_labels: Optional[List[str]] = None,
-        **kwargs: str
+        **kwargs
     ) -> T:
         """ Create a Dataset object from a SURFdrive public access and link to 
         a directory and a path of subfolders.
@@ -186,6 +199,8 @@ class Dataset():
         col_labels : list[str], default None
             List of optional descriptive labels to use for the selected columns.
             If none, use default column names.
+        **kwargs
+            Optional keyword arguments to be passed to Pandas `read_csv`.
 
         Returns
         -------
@@ -216,7 +231,7 @@ class Dataset():
         var_time: Optional[str] = None,
         cols: Optional[List[str]] = None,
         col_labels: Optional[List[str]] = None,
-        **kwargs: str
+        **kwargs
     ) -> T:
         """ Create a Dataset object from a SURFdrive public access link.        
 
@@ -231,6 +246,8 @@ class Dataset():
         col_labels : list[str], default None
             List of optional descriptive labels to use for the selected columns.
             If none, use default column names.
+        **kwargs
+            Optional keyword arguments to be passed to Pandas `read_csv`.
 
         Returns
         -------
