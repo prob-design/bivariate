@@ -5,6 +5,8 @@
 
 Welcome to version 2.0 of the Bivariate package. This README is very incomplete, as it only provides some installation instructions. An example notebook will follow, where the new functionality will be demonstrated.
 
+This package is created to support teachers and teaching assistance in the course Modeling, Uncertainty and Data for Engineers at Delft University of Technology. Students are welcome to use the package if interested, although we ask that you don't use it to solve problems in MUDE assignments unless explicitly asked to do so, or if you want to use it to study in your free time.
+
 ## Installation
 
 *Make sure you have the Python module `wget` installed (from terminal: `pip install wget`). If the repo does not stay public, the wheel file should be downloaded manually from GitLab.*  
