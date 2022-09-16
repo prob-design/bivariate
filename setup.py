@@ -15,5 +15,6 @@ setup(
         'seaborn',
         'scipy',
         'ipykernel'
-    ]  
+    ],
+    license_files=('LICENSE.txt')
 )
