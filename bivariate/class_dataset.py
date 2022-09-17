@@ -301,8 +301,12 @@ class Dataset():
         display(self.dataframe[self._cols].describe())
         
 
-    def time_plot(self, together: Optional[bool] = False,
-                  zoom: Optional[Tuple[datetime]] = None, **kwargs):
+    def time_plot(
+        self,
+        together: Optional[bool] = False,
+        zoom: Optional[Tuple[datetime]] = None,
+        **kwargs
+    ):
         """Plot the data against time.
         
         Parameters
@@ -346,7 +350,7 @@ class Dataset():
         return plt.gcf(), ax
 
 
-    def hist_plot(self, together: Optional[bool] = False, **kwargs):
+    def hist_plot(self, **kwargs):
         """Make a histogram plot of the data.
         
         Parameters
@@ -363,18 +367,15 @@ class Dataset():
             Axes object or Axes objects, if ```together=False```
         """
 
-        figsize = (10, 10) if together else (10, 5*len(self._cols))
+        figsize = (10, 5*len(self._cols))
 
-        ax = self.dataframe.plot(y=self._cols,
-                          kind='hist',
-                          subplots=not together,
-                          figsize=figsize,
-                          title=self._col_labels["long"] if not together else None,
-                          legend=together,
-                          grid=True,
-                          edgecolor='k',
-                          linewidth=1.0,
-                          **kwargs)
+        ax = self.dataframe.hist(
+            column=self._cols,
+            figsize=figsize,
+            layout=(self._ncols, 1),
+            edgecolor='k',
+            linewidth=1.0
+        )
 
         return plt.gcf(), ax
 
