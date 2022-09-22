@@ -151,8 +151,8 @@ class Dataset():
             Dataset object constructed from the given filename.
         """
         if isinstance(var_time, str):
+            var_time = [var_time]
             if cols:
-                var_time = [var_time]
                 cols_used = var_time + cols
             else:
                 cols_used = None
@@ -556,7 +556,7 @@ class Dataset():
         """
 
         if self._has_timecol is False:
-            raise Exception('No datetime column found.')
+            raise KeyError('No datetime column found.')
         
         self.extremes = self.dataframe.resample(period[0].upper(),
                                                 on=self._time_col)\
@@ -957,5 +957,4 @@ class Dataset():
         plt.rcParams.update({'axes.prop_cycle': plt.cycler(color=TUcolor.values()),
                              'font.size': 16, "lines.linewidth": 4})
         return TUcolor
-    
     
