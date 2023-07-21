@@ -150,13 +150,6 @@ class Bivariate():
         else:
             f = plt.gcf()
 
-        if reverse:    # Reverse allows to plot Y (2nd RV) on the x-axis
-            X = self.Y
-            Y = self.X
-        else:
-            X = self.X
-            Y = self.Y
-
         if xlim is None:
             xlim = (X.ppf(0.01), X.ppf(0.99))
         if ylim is None:
@@ -164,7 +157,10 @@ class Bivariate():
 
         x = np.linspace(xlim[0], xlim[1], 1000)
         y = self.pointLSF(myLSF, 0, x, start=(ylim[0]+ylim[1])/2)
-        ax.plot(x, y, label="LSF", color='r')
+        if reverse:
+            ax.plot(y, x, label="LSF", color="r")
+        else:
+            ax.plot(x, y, label="LSF", color="r")
         return f, ax
         
     def plot_contour(self, ax=None, xlim=None, ylim=None, reverse=False, nb_points=200):
@@ -193,8 +189,10 @@ class Bivariate():
         for i in range(X.shape[0]):
             for j in range(X.shape[1]):
                 pdf[i,j] = self.bivariatePdf([X[i,j], Y[i,j]])
-               
-        ax.contour(X, Y, pdf, levels=8, cmap=cm.Blues)
+        if reverse:
+            ax.contour(Y, X, pdf, levels=8, cmap=cm.Blues) 
+        else:
+            ax.contour(X, Y, pdf, levels=8, cmap=cm.Blues)
         ax.set_aspect("equal")
         ax.set_xlim(xlim)
         ax.set_ylim(ylim)
@@ -221,7 +219,7 @@ class Multivar():
     def drawMarginalPdf(self, i):
         f, ax = plt.subplot(1)
         X = self.X[i]
-        x = np.linspace(X.ppf(0.01), X.ppf(0.99), 1000)
+        x = np.linspace(X.ppf( .01), X.ppf(0.99), 1000)
         y = self.X[i].pdf(x)
         ax.plot(x, y, label="pdf")
         ax.set_ylabel(fr"$X_{{{i}}}$")
@@ -240,19 +238,21 @@ class Multivar():
     def bivariate_plot(self, x_index, y_index, myLSF=None):
         X = self.X[x_index]
         Y = self.X[y_index]
+        reverse = x_index > y_index
 
         f, ax = plt.subplot(1)
         x = np.linspace(X.ppf(0.01), X.ppf(0.99), 1000)
 
         if (x_index+y_index)==1:
             c = self.C1
-            if x_index
-            c.plotLSF(myLSF, ax, xlim=(x[0], x[-1]))
-            c.plot_contour(ax, xlim=(x[0], x[-1]))
+            c.plotLSF(myLSF, ax, xlim=(x[0], x[-1]), reverse=reverse)
+            c.plot_contour(ax, xlim=(x[0], x[-1]), reverse=reverse)
         elif (x_index+y_index)==3:
             c = self.C2
-            c.plotLSF(myLSF, ax, xlim=(x[0], x[-1]))
-            c.plot_contour(ax, xlim=(x[0], x[-1]))
+            c.plotLSF(myLSF, ax, xlim=(x[0], x[-1]), reverse=reverse)
+            c.plot_contour(ax, xlim=(x[0], x[-1]), reverse=reverse)
+
+
 
         ax.set_title(fr"Bivariate contours and limit-state function in the plane $(X_{{{x_index}}}, X_{{{y_index}}})$")
         ax.set_xlabel(fr"$X_{{{x_index}}}$")
