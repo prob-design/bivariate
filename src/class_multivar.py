@@ -152,11 +152,7 @@ class Bivariate():
         return [self.pointLSF(myLSF, i, x, start) for x in point]   
 
     def plotLSF(self, myLSF, ax=None, xlim=None, ylim=None, reverse=False):
-        if ax is None:
-            f, ax = plt.subplot(1)
-        else:
-            f = plt.gcf()
-
+        
         if reverse:
             X = self.Y
             Y = self.X
@@ -165,10 +161,21 @@ class Bivariate():
             Y = self.Y
 
         if xlim is None:
-            xlim = (X.ppf(0.01), X.ppf(0.99))
+            if ax is None:
+                xlim = (X.ppf(0.01), X.ppf(0.99))
+            else: 
+                xlim = ax.get_xlim()
         if ylim is None:
-            ylim = (Y.ppf(0.01), Y.ppf(0.99))
+            if ax is None:
+                ylim = (Y.ppf(0.01), Y.ppf(0.99))
+            else:
+                ylim = ax.get_ylim()
 
+        if ax is None:
+            f, ax = plt.subplots(figsize=(12,8))
+        else:
+            f = plt.gcf()
+            
         x = np.linspace(xlim[0], xlim[1], 1000)
         y = self.pointLSF(myLSF, 0, x, start=(ylim[0]+ylim[1])/2)
         if reverse:
@@ -178,11 +185,7 @@ class Bivariate():
         return f, ax
         
     def plot_contour(self, ax=None, xlim=None, ylim=None, reverse=False, nb_points=200):
-        if ax is None:
-            f, ax = plt.subplot(1)
-        else:
-            f = plt.gcf()
-
+        
         if reverse:    
             X = self.Y
             Y = self.X
@@ -191,10 +194,21 @@ class Bivariate():
             Y = self.Y  
 
         if xlim is None:
-            xlim = (X.ppf(0.01), X.ppf(0.99))
+            if ax is None:
+                xlim = (X.ppf(0.01), X.ppf(0.99))
+            else: 
+                xlim = ax.get_xlim()
         if ylim is None:
-            ylim = (Y.ppf(0.01), Y.ppf(0.99))
+            if ax is None:
+                ylim = (Y.ppf(0.01), Y.ppf(0.99))
+            else:
+                ylim = ax.get_ylim()
 
+        if ax is None:
+            f, ax = plt.subplots(figsize=(12,8))
+        else:
+            f = plt.gcf()
+            
         x = np.linspace(xlim[0], xlim[1], nb_points).reshape(-1, 1)
         y = np.linspace(ylim[0], ylim[1], nb_points).reshape(-1, 1)
         X,Y = np.meshgrid(x,y)
@@ -202,7 +216,7 @@ class Bivariate():
 
         for i in range(X.shape[0]):
             for j in range(X.shape[1]):
-                pdf[i,j] = self.bivariatePdf([X[i,j], Y[i,j]])
+                pdf[i,j] = self.bivariatePdf(X[i,j], Y[i,j])
 
         ax.contour(X, Y, pdf, levels=8, cmap=cm.Blues) 
         ax.set_aspect("equal")
