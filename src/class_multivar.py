@@ -3,25 +3,28 @@ import scipy.stats as st
 import matplotlib.pyplot as plt
 import matplotlib.cm as cm 
 
-from scipy.integrate import dblquad
+# from scipy.integrate import dblquad
 from scipy.optimize import fsolve
+from scipy.stats import multivariate_normal as mvn
 
 from functools import  singledispatch, update_wrapper
+
 class NormalCopula():
     def __init__(self, rho):
         self.rho = rho
     
     def pdf(self, u, v):
-        x = st.ppf(u)
-        y = st.ppf(v)
+        x = st.norm.ppf(u)
+        y = st.norm.ppf(v)
         rho = self.rho
         pdf = 1/(2*np.pi*np.sqrt(1-rho**2)) * np.exp(-(x**2 - 2*rho*x*y + y**2)/(2*(1-rho**2)))
         return pdf
     
     def cdf(self, u, v):
-        x = st.ppf(u)
-        y = st.ppf(v)
-        cdf = dblquad(self.pdf, a=-np.inf, b=y, gfun=-np.inf, hfun=x)[0]
+        rho = self.rho
+        cdf = mvn.cdf(x=[st.norm.ppf(u), st.norm.ppf(v)], cov=np.array([[1, rho], [rho, 1]]))
+        # Can use double integration, although very slow
+        # cdf = dblquad(self.pdf, a=0, b=v, gfun=0, hfun=u)[0]
         return cdf
     
 class ClaytonCopula():
@@ -57,7 +60,7 @@ def methdispatch(func):
     '''
     dispatcher = singledispatch(func)
     def wrapper(*args, **kw):
-        return dispatcher.dispatch(args[1].__class__)(*args, **kw)
+        return dispatcher.dispatch(args[3].__class__)(*args, **kw)
     wrapper.register = dispatcher.register
     update_wrapper(wrapper, func)
     return wrapper
@@ -86,21 +89,25 @@ class Bivariate():
                 raise ValueError("Index out of range. Please select i=0 or i=1.")
         
     def drawMarginalPdf(self, i):
-        f, ax = plt.subplot(1)
+        f, ax = plt.subplots(figsize=(12,8))
         X = self.getMarginal(i)
         x = np.linspace(X.ppf(0.01), X.ppf(0.99), 1000)
         y = X.pdf(x)
         ax.plot(x, y, label="pdf")
-        ax.set_title(r"Probability density function of X_{" + str(i) + "}")
+        ax.set_title(r"Probability density function of $X_{" + str(i) + "}$", fontsize=18)
+        ax.set_xlabel(r"$X_" + str(i) + "}$")
+        ax.set_ylabel(r"f($X_" + str(i) + "})$")
         return f, ax
 
     def drawMarginalCdf(self, i):
-        f, ax = plt.subplot(1)
+        f, ax = plt.subplots(figsize=(12,8))
         X = self.getMarginal(i)
         x = np.linspace(X.ppf(0.01), X.ppf(0.99), 1000)
         y = X.cdf(x)
         ax.plot(x, y, label="cdf")
-        ax.set_title(r"Cumulative density function of X_{" + str(i) + "}")
+        ax.set_title(r"Cumulative density function of $X_{" + str(i) + "}$", fontsize=18)
+        ax.set_xlabel(r"$X_" + str(i) + "}$")
+        ax.set_xlabel(r"$F(X_" + str(i) + "})$")
         return f, ax    
 
     def bivariatePdf(self, x, y):
@@ -128,27 +135,34 @@ class Bivariate():
         return copula.cdf(X.cdf(x), Y.cdf(y))
     
     @methdispatch
-    def pointLSF(self, myLSF, i, points, start=0):   # For now: supposes failure condition is myLSF() < 0
+    def pointLSF(self, myLSF, i, point, start=0):   # For now: supposes failure condition is myLSF() < 0
         ''' points: int, float, list or 1D ndarray. '''
         if i ==0:
-            func = lambda y: myLSF(points, y)
+            func = lambda y: myLSF([point, y])
             return fsolve(func, start)[0]
         elif i==1:
-            func = lambda x: myLSF(x, points)
+            func = lambda x: myLSF([x, point])
             return fsolve(func, start)[0]
         else:
             raise ValueError("Index out of range. Please select i=0 or i=1.")
             
     @pointLSF.register(list)
     @pointLSF.register(np.ndarray)
-    def _(self, myLSF, i, points, start=0):
-        return [self.pointLSF(myLSF, i, x, start) for x in points]   
+    def _(self, myLSF, i, point, start=0):
+        return [self.pointLSF(myLSF, i, x, start) for x in point]   
 
     def plotLSF(self, myLSF, ax=None, xlim=None, ylim=None, reverse=False):
         if ax is None:
             f, ax = plt.subplot(1)
         else:
             f = plt.gcf()
+
+        if reverse:
+            X = self.Y
+            Y = self.X
+        else:
+            X = self.X
+            Y = self.Y
 
         if xlim is None:
             xlim = (X.ppf(0.01), X.ppf(0.99))
@@ -169,7 +183,7 @@ class Bivariate():
         else:
             f = plt.gcf()
 
-        if reverse:    # Reverse allows to plot Y (2nd RV) on the x-axis
+        if reverse:    
             X = self.Y
             Y = self.X
         else:
@@ -189,15 +203,13 @@ class Bivariate():
         for i in range(X.shape[0]):
             for j in range(X.shape[1]):
                 pdf[i,j] = self.bivariatePdf([X[i,j], Y[i,j]])
-        if reverse:
-            ax.contour(Y, X, pdf, levels=8, cmap=cm.Blues) 
-        else:
-            ax.contour(X, Y, pdf, levels=8, cmap=cm.Blues)
+
+        ax.contour(X, Y, pdf, levels=8, cmap=cm.Blues) 
         ax.set_aspect("equal")
         ax.set_xlim(xlim)
         ax.set_ylim(ylim)
         ax.set_xlabel(r"$X$")
-        ax.set_ylabel(r"$Y")
+        ax.set_ylabel(r"$Y$")
         return f, ax
 
     
