@@ -45,9 +45,9 @@ class IndependentCopula():
     def __init__(self):
         pass
     
-    #def pdf(self, u, v):
-    #    pdf = u*v
-    #    return pdf
+    def pdf(self, u, v):
+        pdf = u*v
+        return pdf
     
     def cdf(self, u, v):
         cdf = u*v
@@ -64,6 +64,16 @@ def methdispatch(func):
     wrapper.register = dispatcher.register
     update_wrapper(wrapper, func)
     return wrapper
+
+def list_insert(L, i, x):
+        n = len(L)
+        if i==0:
+            l = [x] + L
+        elif i==n-1:
+            l = L + [x]
+        else:
+            l = L[:i] + [x] + L[i:]
+        return l
 
 class Bivariate():
     def __init__(self, X, Y, copula, parameter=0):
@@ -95,8 +105,8 @@ class Bivariate():
         y = X.pdf(x)
         ax.plot(x, y, label="pdf")
         ax.set_title(r"Probability density function of $X_{" + str(i) + "}$", fontsize=18)
-        ax.set_xlabel(r"$X_" + str(i) + "}$")
-        ax.set_ylabel(r"f($X_" + str(i) + "})$")
+        ax.set_xlabel(r"$X_" + str(i) + "}$", fontsize=18)
+        ax.set_ylabel(r"f($X_" + str(i) + "})$", fontsize=18)
         return f, ax
 
     def drawMarginalCdf(self, i):
@@ -106,8 +116,8 @@ class Bivariate():
         y = X.cdf(x)
         ax.plot(x, y, label="cdf")
         ax.set_title(r"Cumulative density function of $X_{" + str(i) + "}$", fontsize=18)
-        ax.set_xlabel(r"$X_" + str(i) + "}$")
-        ax.set_xlabel(r"$F(X_" + str(i) + "})$")
+        ax.set_xlabel(r"$X_" + str(i) + "}$", fontsize=18)
+        ax.set_xlabel(r"$F(X_" + str(i) + "})$", fontsize=18)
         return f, ax    
 
     def bivariatePdf(self, x, y):
@@ -134,22 +144,30 @@ class Bivariate():
         copula = self.copula
         return copula.cdf(X.cdf(x), Y.cdf(y))
     
+    # Make pointLSF more flexible wrt the number of variables for the LSF. 
+    # 
+    
+    # Note: TypeError "NoneType object is not subscriptable" appears if there is no root
+    # for the specified LSF and values
+
     @methdispatch
-    def pointLSF(self, myLSF, i, point, start=0):   # For now: supposes failure condition is myLSF() < 0
-        ''' points: int, float, list or 1D ndarray. '''
-        if i ==0:
-            func = lambda y: myLSF([point, y])
-            return fsolve(func, start)[0]
-        elif i==1:
-            func = lambda x: myLSF([x, point])
+    def pointLSF(self, myLSF, i, values, start=0):   # For now: supposes failure condition is myLSF() < 0
+        ''' 
+        i: int, index of the missing variable.
+        points: int, float, list or 1D ndarray. '''
+        
+        values = [values]
+
+        if i>= 0 and i<len(values)+1:
+            func = lambda x: myLSF(list_insert(values, i, x))
             return fsolve(func, start)[0]
         else:
-            raise ValueError("Index out of range. Please select i=0 or i=1.")
+            raise ValueError("Index out of range. Please select an index .")
             
     @pointLSF.register(list)
     @pointLSF.register(np.ndarray)
-    def _(self, myLSF, i, point, start=0):
-        return [self.pointLSF(myLSF, i, x, start) for x in point]   
+    def _(self, myLSF, i, values, start=0):
+        return [self.pointLSF(myLSF, i, x, start) for x in values]   
 
     def plotLSF(self, myLSF, ax=None, xlim=None, ylim=None, reverse=False):
         
@@ -227,46 +245,47 @@ class Bivariate():
         return f, ax
 
     
-class Multivar():
+class Multivariate():
     def __init__(self, X:list, copulas:dict):
         ''' X: vector of random variables. 
-        copula: vector of copulas '''
+        copula: list of lists/tuples '''
         self.X = X
         self.copulas = copulas
-        keys = copulas.keys()
-        params = copulas.values()
-        self.C1 = Bivariate(X[0], X[1], keys[0], params[0])
-        self.C2 = Bivariate(X[1], X[2], keys[1], params[1])
+        self.C1 = Bivariate(X[0], X[1], copulas[0][0], copulas[0][1])
+        self.C2 = Bivariate(X[1], X[2], copulas[1][0], copulas[1][1])
 
     def getMarginal(self, i):
         ''' Method to extract marginal distribution of index i from vector X of random variables. '''
         return self.X[i]
     
     def drawMarginalPdf(self, i):
-        f, ax = plt.subplot(1)
-        X = self.X[i]
-        x = np.linspace(X.ppf( .01), X.ppf(0.99), 1000)
-        y = self.X[i].pdf(x)
-        ax.plot(x, y, label="pdf")
-        ax.set_ylabel(fr"$X_{{{i}}}$")
-        ax.set_title(fr"Probability density function of $X_{{{i}}}$")
+        if i==0:
+            f, ax = self.C1.drawMarginalPdf(0)
+        elif i==1:
+            f, ax = self.C1.drawMarginalPdf(1)
+        elif i==2:
+            f, ax= self.C2.drawMarginalPdf(1)
+        else:
+            raise ValueError("Index out of range. Please select i=0, 1 or 2.")
         return f, ax
 
     def drawMarginalCdf(self, i):
-        f, ax = plt.subplot(1)
-        X = self.X[i]
-        x = np.linspace(X.ppf(0.01), X.ppf(0.99), 1000)
-        y = X.cdf(x)
-        ax.plot(x, y, label="cdf")
-        ax.set_title(fr"Cumulative density function of $X_{{{i}}}$")
+        if i==0:
+            f, ax = self.C1.drawMarginalCdf(0)
+        elif i==1:
+            f, ax = self.C1.drawMarginalCdf(1)
+        elif i==2:
+            f, ax= self.C2.drawMarginalCdf(1)
+        else:
+            raise ValueError("Index out of range. Please select i=0, 1 or 2.")
         return f, ax
 
     def bivariate_plot(self, x_index, y_index, myLSF=None):
         X = self.X[x_index]
-        Y = self.X[y_index]
+        # Y = self.X[y_index]
         reverse = x_index > y_index
 
-        f, ax = plt.subplot(1)
+        f, ax = plt.subplots(figsize=(12,8))
         x = np.linspace(X.ppf(0.01), X.ppf(0.99), 1000)
 
         if (x_index+y_index)==1:
@@ -280,10 +299,10 @@ class Multivar():
 
 
 
-        ax.set_title(fr"Bivariate contours and limit-state function in the plane $(X_{{{x_index}}}, X_{{{y_index}}})$")
-        ax.set_xlabel(fr"$X_{{{x_index}}}$")
-        ax.set_ylabel(fr"$X_{{{y_index}}}$")
-        ax.set_xlim(X.ppf(0.01), X.ppf(0.99))
-        ax.set_ylim(Y.ppf(0.01), Y.ppf(0.99))
+        ax.set_title(fr"Bivariate contours and limit-state function in the plane $(X_{{{x_index}}}, X_{{{y_index}}})$", fontsize=18)
+        ax.set_xlabel(fr"$X_{{{x_index}}}$", fontsize=18)
+        ax.set_ylabel(fr"$X_{{{y_index}}}$", fontsize=18)
+        #ax.set_xlim(x[0], x[-1])
+        #ax.set_ylim(Y.ppf(0.01), Y.ppf(0.99))
         ax.set_aspect("scaled")
         return f, ax
