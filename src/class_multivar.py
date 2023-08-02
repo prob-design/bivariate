@@ -212,13 +212,21 @@ class Bivariate():
         return f, ax
         
     def plot_contour(self, ax=None, xlim=None, ylim=None, reverse=False, nb_points=200):
+        if ax is None:
+            f, ax = plt.subplots(figsize=(12,8))
+        else:
+            f = plt.gcf()
         
         if reverse:    
             X = self.Y
             Y = self.X
+            ax.set_xlabel(r"$X_2$", fontsize=18)
+            ax.set_ylabel(r"$X_1$", fontsize=18)
         else:
             X = self.X
-            Y = self.Y  
+            Y = self.Y
+            ax.set_xlabel(r"$X_1$", fontsize=18)
+            ax.set_ylabel(r"$X_2$", fontsize=18)  
 
         if xlim is None:
             if ax is None:
@@ -231,11 +239,6 @@ class Bivariate():
             else:
                 ylim = ax.get_ylim()
 
-        if ax is None:
-            f, ax = plt.subplots(figsize=(12,8))
-        else:
-            f = plt.gcf()
-            
         x = np.linspace(xlim[0], xlim[1], nb_points).reshape(-1, 1)
         y = np.linspace(ylim[0], ylim[1], nb_points).reshape(-1, 1)
         X,Y = np.meshgrid(x,y)
@@ -247,10 +250,8 @@ class Bivariate():
 
         ax.contour(X, Y, pdf, levels=8, cmap=cm.Blues) 
         ax.set_aspect("equal")
-        ax.set_xlim(xlim)
-        ax.set_ylim(ylim)
-        ax.set_xlabel(r"$X$")
-        ax.set_ylabel(r"$Y$")
+        # ax.set_xlim(xlim)
+        # ax.set_ylim(ylim)
         return f, ax
 
     
