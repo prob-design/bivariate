@@ -66,6 +66,12 @@ def methdispatch(func):
     return wrapper
 
 def list_insert(L, i, x):
+        '''
+        Helper function for Bivariate's method pointLSF. Returns a new list by inserting x in L at index i.
+        L: list. 
+        i: int. Index at which x is inserted.
+        x: element to insert.
+        '''
         n = len(L)
         if i==0:
             l = [x] + L
@@ -155,7 +161,6 @@ class Bivariate():
         ''' 
         i: int, index of the missing variable.
         points: int, float, list or 1D ndarray. '''
-        
         values = [values]
 
         if i>= 0 and i<len(values)+1:
@@ -171,12 +176,23 @@ class Bivariate():
 
     def plotLSF(self, myLSF, ax=None, xlim=None, ylim=None, reverse=False):
         
+        if ax is None:
+            f, ax = plt.subplots(figsize=(12,8))
+        else:
+            f = plt.gcf()
+
         if reverse:
             X = self.Y
             Y = self.X
+            i = 0
+            ax.set_xlabel(r"$X_2$", fontsize=18)
+            ax.set_ylabel(r"$X_1$", fontsize=18)
         else:
             X = self.X
             Y = self.Y
+            i = 1
+            ax.set_xlabel(r"$X_1$", fontsize=18)
+            ax.set_ylabel(r"$X_2$", fontsize=18) 
 
         if xlim is None:
             if ax is None:
@@ -188,18 +204,11 @@ class Bivariate():
                 ylim = (Y.ppf(0.01), Y.ppf(0.99))
             else:
                 ylim = ax.get_ylim()
-
-        if ax is None:
-            f, ax = plt.subplots(figsize=(12,8))
-        else:
-            f = plt.gcf()
-            
+    
         x = np.linspace(xlim[0], xlim[1], 1000)
-        y = self.pointLSF(myLSF, 0, x, start=(ylim[0]+ylim[1])/2)
-        if reverse:
-            ax.plot(y, x, label="LSF", color="r")
-        else:
-            ax.plot(x, y, label="LSF", color="r")
+        y = self.pointLSF(myLSF, i, x, start=(ylim[0]+ylim[1])/2)
+        ax.plot(x, y, label="LSF", color="r")
+        ax.legend(fontsize=13)   
         return f, ax
         
     def plot_contour(self, ax=None, xlim=None, ylim=None, reverse=False, nb_points=200):
