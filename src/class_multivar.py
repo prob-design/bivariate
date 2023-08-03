@@ -289,18 +289,33 @@ class Multivariate():
             raise ValueError("Index out of range. Please select i=0, 1 or 2.")
         return f, ax
 
+    def find_copula(self, index_1:int, index_2:int):
+        '''
+        Returns the copula associated to the pair of variable X[index_1], X[index_2].
+        '''
+        if index_1 > index_2:
+            temp = index_1
+            index_1 = index_2
+            index_2 = temp
+        elif index_1==index_2:
+            raise ValueError("Invalid index combination. Please provide two different indices.")
+        else:
+            pass
+
+        if index_1==0 and index_2==1:
+            return self.C1
+        elif index_1==1 and index_2==2:
+            return self.C2
+        else:  # Update after sampling is implemented
+            pass
+
     def bivariate_plot(self, x_index:int, y_index:int, myLSF, xlim=None):
-        X = self.X[x_index]
-        # Y = self.X[y_index]
         reverse = x_index > y_index
 
         f, ax = plt.subplots(figsize=(12,8))
         #x = np.linspace(X.ppf(0.01), X.ppf(0.99))
 
-        if (x_index+y_index)==1:
-            c = self.C1
-        elif (x_index+y_index)==3:
-            c = self.C2
+        
             
         c.plotLSF(myLSF, ax=ax, reverse=reverse, xlim=xlim)
         c.plot_contour(ax, reverse=reverse, xlim=xlim)
