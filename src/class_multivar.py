@@ -186,7 +186,7 @@ class Bivariate():
             Y = self.X
             i = 0
             ax.set_xlabel(r"$X_2$", fontsize=18)
-            ax.set_ylabel(r"$X_1$", fontsize=18)
+            ax.set_ylabel(r" s$X_1$", fontsize=18)
         else:
             X = self.X
             Y = self.Y
@@ -206,7 +206,7 @@ class Bivariate():
                 ylim = ax.get_ylim()
     
         x = np.linspace(xlim[0], xlim[1], 1000)
-        y = self.pointLSF(myLSF, i, x, start=(ylim[0]+ylim[1])/2)
+        y = self.pointLSF(myLSF, i, x)
         ax.plot(x, y, label="LSF", color="r")
         ax.legend(fontsize=13)   
         return f, ax
@@ -254,7 +254,6 @@ class Bivariate():
         # ax.set_ylim(ylim)
         return f, ax
 
-    
 class Multivariate():
     def __init__(self, X:list, copulas:dict):
         ''' X: vector of random variables. 
@@ -290,29 +289,26 @@ class Multivariate():
             raise ValueError("Index out of range. Please select i=0, 1 or 2.")
         return f, ax
 
-    def bivariate_plot(self, x_index, y_index, myLSF=None):
+    def bivariate_plot(self, x_index:int, y_index:int, myLSF, xlim=None):
         X = self.X[x_index]
         # Y = self.X[y_index]
         reverse = x_index > y_index
 
         f, ax = plt.subplots(figsize=(12,8))
-        x = np.linspace(X.ppf(0.01), X.ppf(0.99), 1000)
+        #x = np.linspace(X.ppf(0.01), X.ppf(0.99))
 
         if (x_index+y_index)==1:
             c = self.C1
-            c.plotLSF(myLSF, ax, xlim=(x[0], x[-1]), reverse=reverse)
-            c.plot_contour(ax, xlim=(x[0], x[-1]), reverse=reverse)
         elif (x_index+y_index)==3:
             c = self.C2
-            c.plotLSF(myLSF, ax, xlim=(x[0], x[-1]), reverse=reverse)
-            c.plot_contour(ax, xlim=(x[0], x[-1]), reverse=reverse)
-
-
+            
+        c.plotLSF(myLSF, ax=ax, reverse=reverse, xlim=xlim)
+        c.plot_contour(ax, reverse=reverse, xlim=xlim)
 
         ax.set_title(fr"Bivariate contours and limit-state function in the plane $(X_{{{x_index}}}, X_{{{y_index}}})$", fontsize=18)
         ax.set_xlabel(fr"$X_{{{x_index}}}$", fontsize=18)
         ax.set_ylabel(fr"$X_{{{y_index}}}$", fontsize=18)
         #ax.set_xlim(x[0], x[-1])
         #ax.set_ylim(Y.ppf(0.01), Y.ppf(0.99))
-        ax.set_aspect("scaled")
+        # ax.set_aspect("scaled")
         return f, ax
