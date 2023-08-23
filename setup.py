@@ -15,7 +15,8 @@ setup(
         'seaborn',
         'scipy',
         'ipykernel',
-        'pyvinecopulib'
+        'pyvinecopulib',
+        'pytest'
     ],
     license_files=('LICENSE.txt')
 )
