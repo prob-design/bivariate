@@ -68,17 +68,18 @@ def methdispatch(func):
     return wrapper
 
 class Bivariate():
-    def __init__(self, X, Y, copula, parameter=0):
+    def __init__(self, X, Y, family, parameter=0):
         ''' copula: string. Either "Normal", "Clayton" or "Independent". '''
         self.X = X
         self.Y = Y
-        if copula == "Normal":
+        self.family = family
+        if family == "Normal":
             #self.copula = NormalCopula(parameter)
             self.copula = pyc.Bicop(family=pyc.BicopFamily.gaussian, parameters=[parameter])
-        elif copula == "Clayton":
+        elif family == "Clayton":
             #self.copula = ClaytonCopula(parameter)
             self.copula = pyc.Bicop(family=pyc.BicopFamily.clayton, parameters=[parameter])
-        elif copula == "Independent":
+        elif family == "Independent":
             #self.copula = IndependentCopula()
             self.copula = pyc.Bicop(family=pyc.BicopFamily.indep)
         else:
@@ -126,7 +127,7 @@ class Bivariate():
         Y = self.Y
         copula = self.copula
         #pdf = copula.pdf(X.cdf(x), Y.cdf(y))
-        pdf = float(copula.pdf[[X.cdf(x), Y.cdf(y)]])
+        pdf = float(copula.pdf([[X.cdf(x), Y.cdf(y)]]))
         return pdf
     
     def bivariateCdf(self, x, y):
@@ -140,7 +141,7 @@ class Bivariate():
         Y = self.Y
         copula = self.copula
         #cdf = copula.cdf(X.cdf(x), Y.cdf(y))
-        cdf = float(copula.cdf[[X.cdf(x), Y.cdf(y)]])
+        cdf = float(copula.cdf([[X.cdf(x), Y.cdf(y)]]))
         return cdf
     
     @methdispatch
@@ -261,16 +262,22 @@ def fit_copula(x, y, family=pyc.BicopFamily.gaussian):
     return fitted_cop
 
 
-class Multivar():
+class Multivariate():
     def __init__(self, X:list, copulas:dict):
         ''' X: vector of random variables. 
-        copula: vector of copulas '''
+        copula: vector of copulas including the conditional one. '''
         self.X = X
-        self.copulas = copulas
-        keys = copulas.keys()
-        params = copulas.values()
-        self.C1 = Bivariate(X[0], X[1], keys[0], params[0])
-        self.C2 = Bivariate(X[1], X[2], keys[1], params[1])
+        self.copulas = copulas        
+        self.B1 = Bivariate(X[0], X[1], copulas[0][0], copulas[0][1])
+        self.B2 = Bivariate(X[1], X[2], copulas[1][0], copulas[1][1])
+        if self.B1.family == "Normal" and self.B2.family == "Normal" and copulas[2][0] == "Normal":
+            family=pyc.BicopFamily.gaussian
+            x = sampling_cop(self.B1.copula, self.B2.copula, 
+                             cond_cop=pyc.Bicop(family=family, parameters=[copulas[2,1]]))
+            fitted_copula = fit_copula(x[:,0], x[:,2], family=family)
+            self.B3 = Bivariate(X[0], X[2], "Normal", float(fitted_copula.parameters))
+        else:
+            pass       # Determine which are the particular cases where the copula of X0, X2 is defined
 
     def getMarginal(self, i):
         ''' Method to extract marginal distribution of index i from vector X of random variables. '''
@@ -304,16 +311,15 @@ class Multivar():
         x = np.linspace(X.ppf(0.01), X.ppf(0.99), 1000)
 
         if (x_index+y_index)==1:
-            c = self.C1
-            c.plotLSF(myLSF, ax, xlim=(x[0], x[-1]), reverse=reverse)
-            c.plot_contour(ax, xlim=(x[0], x[-1]), reverse=reverse)
+            c = self.B1
         elif (x_index+y_index)==3:
-            c = self.C2
-            c.plotLSF(myLSF, ax, xlim=(x[0], x[-1]), reverse=reverse)
-            c.plot_contour(ax, xlim=(x[0], x[-1]), reverse=reverse)
-
-
-
+            c = self.B2
+        else:
+            c = self.B3
+            
+        c.plotLSF(myLSF, ax, xlim=(x[0], x[-1]), reverse=reverse)
+        c.plot_contour(ax, xlim=(x[0], x[-1]), reverse=reverse)
+        
         ax.set_title(fr"Bivariate contours and limit-state function in the plane $(X_{{{x_index}}}, X_{{{y_index}}})$")
         ax.set_xlabel(fr"$X_{{{x_index}}}$")
         ax.set_ylabel(fr"$X_{{{y_index}}}$")
