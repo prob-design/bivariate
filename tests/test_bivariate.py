@@ -3,8 +3,7 @@ import numpy as np
 import scipy.stats as st
 
 import sys
-sys.path.append(r'H:/bivariate/src')
-from src.class_multivar import Bivariate, Multivariate
+from bivariate.class_multivar import Bivariate, Multivariate
 
 import logging
 
