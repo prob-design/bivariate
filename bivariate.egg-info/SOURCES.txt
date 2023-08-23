@@ -1,0 +1,8 @@
+README.md
+setup.py
+bivariate.egg-info/PKG-INFO
+bivariate.egg-info/SOURCES.txt
+bivariate.egg-info/dependency_links.txt
+bivariate.egg-info/requires.txt
+bivariate.egg-info/top_level.txt
+tests/test_bivariate.py
