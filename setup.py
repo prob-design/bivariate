@@ -16,7 +16,8 @@ setup(
         'scipy',
         'ipykernel',
         'pyvinecopulib',
-        'pytest'
+        'pytest',
+        'mypy'
     ],
     license_files=('LICENSE.txt')
 )
