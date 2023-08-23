@@ -7,6 +7,8 @@ import matplotlib.cm as cm
 from scipy.optimize import fsolve
 from scipy.stats import multivariate_normal as mvn
 
+import pyvinecopulib as pyc      # Used for sampling: maybe used manually defined classes in the future
+
 from functools import  singledispatch, update_wrapper
 
 class NormalCopula():
@@ -71,11 +73,14 @@ class Bivariate():
         self.X = X
         self.Y = Y
         if copula == "Normal":
-            self.copula = NormalCopula(parameter)
+            #self.copula = NormalCopula(parameter)
+            self.copula = pyc.Bicop(family=pyc.BicopFamily.gaussian, parameters=[parameter])
         elif copula == "Clayton":
-            self.copula = ClaytonCopula(parameter)
+            #self.copula = ClaytonCopula(parameter)
+            self.copula = pyc.Bicop(family=pyc.BicopFamily.clayton, parameters=[parameter])
         elif copula == "Independent":
-            self.copula = IndependentCopula()
+            #self.copula = IndependentCopula()
+            self.copula = pyc.Bicop(family=pyc.BicopFamily.indep)
         else:
             raise ValueError("Invalid copula. Please choose between Normal, Clayton or Independent copulae. ")            
     
@@ -120,7 +125,9 @@ class Bivariate():
         X = self.X
         Y = self.Y
         copula = self.copula
-        return copula.pdf(X.cdf(x), Y.cdf(y))
+        #pdf = copula.pdf(X.cdf(x), Y.cdf(y))
+        pdf = float(copula.pdf[[X.cdf(x), Y.cdf(y)]])
+        return pdf
     
     def bivariateCdf(self, x, y):
         '''
@@ -132,7 +139,9 @@ class Bivariate():
         X = self.X
         Y = self.Y
         copula = self.copula
-        return copula.cdf(X.cdf(x), Y.cdf(y))
+        #cdf = copula.cdf(X.cdf(x), Y.cdf(y))
+        cdf = float(copula.cdf[[X.cdf(x), Y.cdf(y)]])
+        return cdf
     
     @methdispatch
     def pointLSF(self, myLSF, i, point, start=0):   # For now: supposes failure condition is myLSF() < 0
@@ -227,6 +236,31 @@ class Bivariate():
         return f, ax
 
     
+def sampling_cop(cop1, cop2, cond_cop=pyc.Bicop(), n=10000):
+    ''' 
+    cop1: copula between variables X0 and X1.
+    cop2: copula between variables X1 and X2.
+    Assumption: conditional copula (default: independent copula).
+    
+    ---------------
+    See sampling procedure in http://dx.doi.org/10.1016/j.insmatheco.2007.02.001
+    '''
+    u = np.random.rand(n, 3)
+    x0 = u[:,0]
+    x1 = cop1.hinv1(np.concatenate((x0.reshape(-1,1), u[:,1].reshape(-1,1)), axis=1))
+    a = cop1.hfunc1(np.concatenate((x0.reshape(-1,1), x1.reshape(-1,1)), axis=1))
+    b = cond_cop.hinv1(np.concatenate((a.reshape(-1,1), u[:,2].reshape(-1,1)), axis=1))
+    x2 = cop2.hinv1(np.concatenate((x1.reshape(-1,1), b.reshape(-1,1)), axis=1))
+    #x = np.concatenate((X0.ppf(x0).reshape(-1,1), X1.ppf(x1).reshape(-1,1), X2.ppf(x2).reshape(-1,1)), axis=1)
+    x = np.concatenate((x0.reshape(-1,1), x1.reshape(-1,1), x2.reshape(-1,1)), axis=1)
+    return x
+
+def fit_copula(x, y, family=pyc.BicopFamily.gaussian):
+    fitted_cop = pyc.Bicop(family=family)
+    fitted_cop.fit(np.concatenate((x.reshape(-1,1), y.reshape(-1,1)), axis=1))
+    return fitted_cop
+
+
 class Multivar():
     def __init__(self, X:list, copulas:dict):
         ''' X: vector of random variables. 
