@@ -8,7 +8,6 @@ name='bivariate'
 version='2.0.0'
 description='This package contains methods that assist in performing\
     bivariate analysis of datasets.'
-url='https://github.com/prob-design/bivariate.git'
 license = {file = "LICENSE.txt"}
 authors = [
   {email = "r.lanzafame@tudelft.nl"},
@@ -23,9 +22,10 @@ dependencies = [
     'scipy',
     'ipykernel',
     'pyvinecopulib',
-    'pytest',
-    'mypy'
 ],
+
+[project.urls]
+Repository = 'https://github.com/prob-design/bivariate.git'
 
 [project.optional-dependencies]
 test = [
