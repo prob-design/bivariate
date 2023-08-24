@@ -32,3 +32,10 @@ def test_bivariate_marginal_plots(bivar, limitstatefunc):
         b.plotLSF(limitstatefunc)
         b.plot_contour(nb_points=100)
 
+@pytest.fixture
+def multivar():
+    return Multivariate([X1, X2, X3], [('Normal', 0.5), ('Normal', 0.2), ('Normal', 0.4)])
+
+@pytest.mark.usefixtures("limitstatefunc")
+def test_multivariate_plot(multivar, limitstatefunc):
+    multivar.bivariate_plot(0, 1, limitstatefunc)

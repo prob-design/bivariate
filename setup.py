@@ -7,6 +7,8 @@ setup(
     description='This package contains methods that assist in performing\
         bivariate analysis of datasets.',
     url='https://github.com/prob-design/bivariate.git',
+    author='Robert Lanzafame',
+    author_email='r.c.lanzafame@tudelft.nl'
     packages=find_packages(exclude=['old_package*']),
     install_requires=[
         'numpy',

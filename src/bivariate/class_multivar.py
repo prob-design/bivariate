@@ -263,7 +263,7 @@ def fit_copula(x, y, family=pyc.BicopFamily.gaussian):
 
 
 class Multivariate():
-    def __init__(self, X:list, copulas:dict):
+    def __init__(self, X:list, copulas:list):
         ''' X: vector of random variables. 
         copula: vector of copulas including the conditional one. '''
         self.X = X
@@ -273,7 +273,7 @@ class Multivariate():
         if self.B1.family == "Normal" and self.B2.family == "Normal" and copulas[2][0] == "Normal":
             family=pyc.BicopFamily.gaussian
             x = sampling_cop(self.B1.copula, self.B2.copula, 
-                             cond_cop=pyc.Bicop(family=family, parameters=[copulas[2,1]]))
+                             cond_cop=pyc.Bicop(family=family, parameters=[copulas[2][1]]))
             fitted_copula = fit_copula(x[:,0], x[:,2], family=family)
             self.B3 = Bivariate(X[0], X[2], "Normal", float(fitted_copula.parameters))
         else:
@@ -307,7 +307,7 @@ class Multivariate():
         Y = self.X[y_index]
         reverse = x_index > y_index
 
-        f, ax = plt.subplot(1)
+        f, ax = plt.subplots(figsize=(10,6))
         x = np.linspace(X.ppf(0.01), X.ppf(0.99), 1000)
 
         if (x_index+y_index)==1:
@@ -325,5 +325,4 @@ class Multivariate():
         ax.set_ylabel(fr"$X_{{{y_index}}}$")
         ax.set_xlim(X.ppf(0.01), X.ppf(0.99))
         ax.set_ylim(Y.ppf(0.01), Y.ppf(0.99))
-        ax.set_aspect("scaled")
         return f, ax
