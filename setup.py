@@ -1,9 +1,6 @@
 from setuptools import find_packages
 from setuptools import setup
 
-#if __name__ == "__main__":
-#    setup()
-
 setup(
     name='bivariate',
     version='2.0.0',
@@ -22,5 +19,5 @@ setup(
         'pytest',
         'mypy'
     ],
-    license_files=('LICENSE.txt')
+    license_files='LICENSE.txt'
 )

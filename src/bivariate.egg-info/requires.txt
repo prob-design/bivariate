@@ -1,0 +1,12 @@
+numpy
+pandas
+matplotlib>=3.5.0
+seaborn
+scipy
+ipykernel
+pyvinecopulib
+
+[test]
+pytest==7.4.0
+pytest-cov>4.0.0
+mypy==1.5.1

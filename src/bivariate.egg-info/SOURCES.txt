@@ -1,0 +1,13 @@
+LICENSE.txt
+README.md
+pyproject.toml
+setup.py
+src/bivariate/__init__.py
+src/bivariate/class_dataset.py
+src/bivariate/class_multivar.py
+src/bivariate.egg-info/PKG-INFO
+src/bivariate.egg-info/SOURCES.txt
+src/bivariate.egg-info/dependency_links.txt
+src/bivariate.egg-info/requires.txt
+src/bivariate.egg-info/top_level.txt
+tests/test_bivariate.py
