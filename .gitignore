@@ -7,3 +7,7 @@ __pycache__/
 build/
 dist/
 mude78_class.py
+bivariate.egg-info
+src/bivariate.egg-info
+.pytest_cache
+.mypy_cache
