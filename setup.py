@@ -17,8 +17,8 @@ setup(
         'seaborn',
         'scipy',
         'ipykernel',
-        'pyvinecopulib',
         'pybind11',
+        'pyvinecopulib',
         'pytest',
         'mypy'
     ],
