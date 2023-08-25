@@ -39,5 +39,3 @@ def multivar():
 @pytest.mark.usefixtures("limitstatefunc")
 def test_multivariate_plot(multivar, limitstatefunc):
     multivar.bivariate_plot(0, 1, limitstatefunc)
-
-aaa
