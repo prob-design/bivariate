@@ -36,11 +36,12 @@ test = [
 ]
 
 
-[tool]
+[tool.pytest.ini_options]
 addopts = "--cov=bivariate"
 testpaths = [
-  "tests",
+    "tests",
 ]
+
 
 [tool.mypy]
 mypy_path = "src"
