@@ -11,3 +11,4 @@ bivariate.egg-info
 src/bivariate.egg-info
 .pytest_cache
 .mypy_cache
+.coverage
