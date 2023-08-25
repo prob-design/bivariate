@@ -18,6 +18,7 @@ setup(
         'scipy',
         'ipykernel',
         'pyvinecopulib',
+        'pybind11',
         'pytest',
         'mypy'
     ],
