@@ -1,11 +1,8 @@
 import numpy as np
-import scipy.stats as st
 import matplotlib.pyplot as plt
 import matplotlib.cm as cm
 
-# from scipy.integrate import dblquad
 from scipy.optimize import fsolve
-from scipy.stats import multivariate_normal as mvn
 
 import pyvinecopulib as pyc      # Used for sampling: maybe used manually defined classes in the future
 
@@ -13,8 +10,21 @@ from functools import singledispatch, update_wrapper
 
 
 def methdispatch(func):
-    ''' 
-    Source: https://stackoverflow.com/questions/24601722/how-can-i-use-functools-singledispatch-with-instance-methods 
+    '''
+    Source: https://stackoverflow.com/questions/24601722/how-can-i-use-functools-singledispatch-with-instance-methods
+    For use in pointLSF method (avoids multiple if statements elegantly).
+    '''
+    dispatcher = singledispatch(func)
+
+    def wrapper(*args, **kw):
+        return dispatcher.dispatch(args[3].__class__)(*args, **kw)
+    wrapper.register = dispatcher.register
+    update_wrapper(wrapper, func)
+    return wrapper
+
+def methdispatch(func):
+    '''
+    Source: https://stackoverflow.com/questions/24601722/how-can-i-use-functools-singledispatch-with-instance-methods
     For use in pointLSF method (avoids multiple if statements elegantly).
     '''
     dispatcher = singledispatch(func)
@@ -24,6 +34,30 @@ def methdispatch(func):
     update_wrapper(wrapper, func)
     return wrapper
 
+# Adapt this to LimitStateFunction class and only have ndarray in second case
+@methdispatch
+def pointLSF(self, myLSF, i, point, start=0):  # For now: supposes failure condition is myLSF() < 0
+    ''' points: int, float, list or 1D ndarray. '''
+    if i == 0:
+        func = lambda y: myLSF([point, y])
+        return fsolve(func, start)[0]
+    elif i == 1:
+        func = lambda x: myLSF([x, point])
+        return fsolve(func, start)[0]
+    else:
+        raise ValueError("Index out of range. Please select i=0 or i=1.")
+
+
+@pointLSF.register(list)
+@pointLSF.register(np.ndarray)
+def _(self, myLSF, i, point, start=0):
+    return [self.pointLSF(myLSF, i, x, start) for x in point]
+
+
+class LimitStateFunction():
+    def __init__(self):
+        pass
+
 class Bivariate():
     def __init__(self, X, Y, family, parameter=0):
         ''' copula: string. Either "Normal", "Clayton" or "Independent". '''
@@ -31,31 +65,30 @@ class Bivariate():
         self.Y = Y
         self.family = family
         if family == "Normal":
-            #self.copula = NormalCopula(parameter)
             self.copula = pyc.Bicop(family=pyc.BicopFamily.gaussian, parameters=[parameter])
         elif family == "Clayton":
-            #self.copula = ClaytonCopula(parameter)
             self.copula = pyc.Bicop(family=pyc.BicopFamily.clayton, parameters=[parameter])
         elif family == "Independent":
-            #self.copula = IndependentCopula()
             self.copula = pyc.Bicop(family=pyc.BicopFamily.indep)
         else:
-            raise ValueError("Invalid copula. Please choose between Normal, Clayton or Independent copulae. ")            
-    
+            raise ValueError("Invalid copula. Please choose between Normal, Clayton or Independent copulae. ")
+
     def getMarginal(self, i):
-            ''' Method to extract marginal distribution of index i from vector X of random variables. '''
-            if i==0:
-                return self.X
-            elif i==1:
-                return self.Y
-            else:
-                raise ValueError("Index out of range. Please select i=0 or i=1.")
-        
+        """
+        Method to extract marginal distribution of index i from vector X of random variables.
+        """
+        if i == 0:
+            return self.X
+        elif i == 1:
+            return self.Y
+        else:
+            raise ValueError("Index out of range. Please select i=0 or i=1.")
+
     def drawMarginalPdf(self, i):
-        f, ax = plt.subplots(figsize=(12,8))
-        X = self.getMarginal(i)
-        x = np.linspace(X.ppf(0.01), X.ppf(0.99), 1000)
-        y = X.pdf(x)
+        f, ax = plt.subplots(figsize=(12, 8))
+        var = self.getMarginal(i)
+        x = np.linspace(var.ppf(0.01), var.ppf(0.99), 1000)
+        y = var.pdf(x)
         ax.plot(x, y, label="pdf")
         ax.set_title(r"Probability density function of $X_{" + str(i) + "}$", fontsize=18)
         ax.set_xlabel(r"$X_" + str(i) + "}$")
@@ -63,30 +96,27 @@ class Bivariate():
         return f, ax
 
     def drawMarginalCdf(self, i):
-        f, ax = plt.subplots(figsize=(12,8))
-        X = self.getMarginal(i)
-        x = np.linspace(X.ppf(0.01), X.ppf(0.99), 1000)
-        y = X.cdf(x)
+        f, ax = plt.subplots(figsize=(12, 8))
+        var = self.getMarginal(i)
+        x = np.linspace(var.ppf(0.01), var.ppf(0.99), 1000)
+        y = var.cdf(x)
         ax.plot(x, y, label="cdf")
         ax.set_title(r"Cumulative density function of $X_{" + str(i) + "}$", fontsize=18)
         ax.set_xlabel(r"$X_" + str(i) + "}$")
         ax.set_xlabel(r"$F(X_" + str(i) + "})$")
-        return f, ax    
+        return f, ax
 
     def bivariatePdf(self, x, y):
-        ''' 
+        '''
         Bivariate probability density function.
 
         Arguments:
         x, y: scalar. Coordinates at which the bivariate PDF is evaluated.
         '''
-        X = self.X
-        Y = self.Y
-        copula = self.copula
-        #pdf = copula.pdf(X.cdf(x), Y.cdf(y))
-        pdf = float(copula.pdf([[X.cdf(x), Y.cdf(y)]]))
+        # pdf = copula.pdf(X.cdf(x), Y.cdf(y))
+        pdf = float(self.copula.pdf([[self.X.cdf(x), self.Y.cdf(y)]]))
         return pdf
-    
+
     def bivariateCdf(self, x, y):
         '''
         Bivariate cumulative density function.
@@ -94,32 +124,35 @@ class Bivariate():
         Arguments:
         x, y: scalar. Coordinates at which the bivariate CDF is evaluated.
         '''
-        X = self.X
-        Y = self.Y
-        copula = self.copula
-        #cdf = copula.cdf(X.cdf(x), Y.cdf(y))
-        cdf = float(copula.cdf([[X.cdf(x), Y.cdf(y)]]))
+        # cdf = copula.cdf(X.cdf(x), Y.cdf(y))
+        cdf = float(self.copula.cdf([[self.X.cdf(x), self.Y.cdf(y)]]))
         return cdf
-    
-    @methdispatch
-    def pointLSF(self, myLSF, i, point, start=0):   # For now: supposes failure condition is myLSF() < 0
+
+
+    @staticmethod
+    def calculate_root_LSF(myLSF, i, values, start=0):
+
+        def temp_func(x):
+            return myLSF(values[:i] + [x] + values[i+1:])
+
+        y = fsolve(temp_func, start)[0]
+        return y
+
+# Below, add case for which we have a vector of observations (column vector)
+    def pointLSF(self, myLSF, i, values, start=0, max_attempts=5):
         ''' points: int, float, list or 1D ndarray. '''
-        if i ==0:
-            func = lambda y: myLSF([point, y])
-            return fsolve(func, start)[0]
-        elif i==1:
-            func = lambda x: myLSF([x, point])
-            return fsolve(func, start)[0]
+        if 0 <= i < len(values):
+            start_value = start
+            for _ in range(max_attempts):
+                try:
+                    y = self.calculate_root_LSF(myLSF, i, values, start_value)
+                    return y
+                except RuntimeWarning:
+                    start_value += 1
         else:
             raise ValueError("Index out of range. Please select i=0 or i=1.")
-            
-    @pointLSF.register(list)
-    @pointLSF.register(np.ndarray)
-    def _(self, myLSF, i, point, start=0):
-        return [self.pointLSF(myLSF, i, x, start) for x in point]   
 
     def plotLSF(self, myLSF, ax=None, xlim=None, ylim=None, reverse=False):
-        
         if reverse:
             X = self.Y
             Y = self.X
@@ -143,47 +176,46 @@ class Bivariate():
         else:
             f = plt.gcf()
             
-        x = np.linspace(xlim[0], xlim[1], 1000)
+        x = np.linspace(xlim[0], xlim[1], 1000).reshape(-1,1)
         y = self.pointLSF(myLSF, 0, x, start=(ylim[0]+ylim[1])/2)
         if reverse:
             ax.plot(y, x, label="LSF", color="r")
         else:
             ax.plot(x, y, label="LSF", color="r")
         return f, ax
-        
+
     def plot_contour(self, ax=None, xlim=None, ylim=None, reverse=False, nb_points=200):
-        
-        if reverse:    
-            X = self.Y
-            Y = self.X
+        if reverse:
+            X1 = self.Y
+            X2 = self.X
         else:
-            X = self.X
-            Y = self.Y  
+            X1 = self.X
+            X2 = self.Y
 
         if xlim is None:
             if ax is None:
-                xlim = (X.ppf(0.01), X.ppf(0.99))
+                xlim = (X1.ppf(0.01), X1.ppf(0.99))
             else: 
                 xlim = ax.get_xlim()
         if ylim is None:
             if ax is None:
-                ylim = (Y.ppf(0.01), Y.ppf(0.99))
+                ylim = (X2.ppf(0.01), X2.ppf(0.99))
             else:
                 ylim = ax.get_ylim()
 
         if ax is None:
-            f, ax = plt.subplots(figsize=(12,8))
+            f, ax = plt.subplots(figsize=(12, 8))
         else:
             f = plt.gcf()
             
         x = np.linspace(xlim[0], xlim[1], nb_points).reshape(-1, 1)
         y = np.linspace(ylim[0], ylim[1], nb_points).reshape(-1, 1)
-        X,Y = np.meshgrid(x,y)
+        X, Y = np.meshgrid(x,y)
         pdf = np.zeros(X.shape)
 
         for i in range(X.shape[0]):
             for j in range(X.shape[1]):
-                pdf[i,j] = self.bivariatePdf(X[i,j], Y[i,j])
+                pdf[i,j] = self.bivariatePdf(X[i, j], Y[i, j])
 
         ax.contour(X, Y, pdf, levels=8, cmap=cm.Blues) 
         ax.set_aspect("equal")
@@ -193,7 +225,7 @@ class Bivariate():
         ax.set_ylabel(r"$Y$")
         return f, ax
 
-    
+
 def sampling_cop(cop1, cop2, cond_cop=pyc.Bicop(), n=10000):
     ''' 
     cop1: copula between variables X0 and X1.
@@ -209,9 +241,10 @@ def sampling_cop(cop1, cop2, cond_cop=pyc.Bicop(), n=10000):
     a = cop1.hfunc1(np.concatenate((x0.reshape(-1,1), x1.reshape(-1,1)), axis=1))
     b = cond_cop.hinv1(np.concatenate((a.reshape(-1,1), u[:,2].reshape(-1,1)), axis=1))
     x2 = cop2.hinv1(np.concatenate((x1.reshape(-1,1), b.reshape(-1,1)), axis=1))
-    #x = np.concatenate((X0.ppf(x0).reshape(-1,1), X1.ppf(x1).reshape(-1,1), X2.ppf(x2).reshape(-1,1)), axis=1)
+    # x = np.concatenate((X0.ppf(x0).reshape(-1,1), X1.ppf(x1).reshape(-1,1), X2.ppf(x2).reshape(-1,1)), axis=1)
     x = np.concatenate((x0.reshape(-1,1), x1.reshape(-1,1), x2.reshape(-1,1)), axis=1)
     return x
+
 
 def fit_copula(x, y, family=pyc.BicopFamily.gaussian):
     fitted_cop = pyc.Bicop(family=family)
@@ -239,7 +272,7 @@ class Multivariate():
     def getMarginal(self, i):
         ''' Method to extract marginal distribution of index i from vector X of random variables. '''
         return self.X[i]
-    
+
     def drawMarginalPdf(self, i):
         f, ax = plt.subplot(1)
         X = self.X[i]
