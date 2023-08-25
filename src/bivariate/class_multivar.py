@@ -1,7 +1,7 @@
 import numpy as np
 import scipy.stats as st
 import matplotlib.pyplot as plt
-import matplotlib.cm as cm 
+import matplotlib.cm as cm
 
 # from scipy.integrate import dblquad
 from scipy.optimize import fsolve
@@ -9,51 +9,8 @@ from scipy.stats import multivariate_normal as mvn
 
 import pyvinecopulib as pyc      # Used for sampling: maybe used manually defined classes in the future
 
-from functools import  singledispatch, update_wrapper
+from functools import singledispatch, update_wrapper
 
-class NormalCopula():
-    def __init__(self, rho):
-        self.rho = rho
-    
-    def pdf(self, u, v):
-        x = st.norm.ppf(u)
-        y = st.norm.ppf(v)
-        rho = self.rho
-        pdf = 1/(2*np.pi*np.sqrt(1-rho**2)) * np.exp(-(x**2 - 2*rho*x*y + y**2)/(2*(1-rho**2)))
-        return pdf
-    
-    def cdf(self, u, v):
-        rho = self.rho
-        cdf = mvn.cdf(x=[st.norm.ppf(u), st.norm.ppf(v)], cov=np.array([[1, rho], [rho, 1]]))
-        # Can use double integration, although very slow
-        # cdf = dblquad(self.pdf, a=0, b=v, gfun=0, hfun=u)[0]
-        return cdf
-    
-class ClaytonCopula():
-    def __init__(self, theta):
-        self.theta = theta
-    
-    def pdf(self, u, v):
-        theta = self.theta
-        pdf = (1+theta)*(u*v)^(-1-theta) * (u^(-theta) + v^(-theta) - 1)^(-1/theta -2) 
-        return pdf
-    
-    def cdf(self, u, v):
-        theta = self.theta
-        cdf = (u^(-theta) + v^(-theta) - 1)^(-1/theta)
-        return cdf
-    
-class IndependentCopula():
-    def __init__(self):
-        pass
-    
-    #def pdf(self, u, v):
-    #    pdf = u*v
-    #    return pdf
-    
-    def cdf(self, u, v):
-        cdf = u*v
-        return cdf
 
 def methdispatch(func):
     ''' 
