@@ -20,9 +20,9 @@ jobs:
         run: |
           python -m pip install --upgrade pip
           pip install -r requirements.txt
-      - name: Set PYTHONPATH
+      -name: Install bivariate
         run: |
-          export PYTHONPATH="${PYTHONPATH}:${GITHUB_WORKSPACE}"
+          pip install bivariate
       - name: Test with pytest
         run: |
           pip install pytest pytest-cov

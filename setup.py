@@ -9,7 +9,7 @@ setup(
     url='https://github.com/prob-design/bivariate.git',
     author='Robert Lanzafame',
     author_email='r.c.lanzafame@tudelft.nl'
-    packages=find_packages(exclude=['old_package*']),
+    packages=['src/bivariate', 'tests']
     install_requires=[
         'numpy',
         'pandas',
