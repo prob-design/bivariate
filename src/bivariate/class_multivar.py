@@ -1,6 +1,7 @@
 import numpy as np
 import matplotlib.pyplot as plt
 import matplotlib.cm as cm
+import scipy.stats.distributions
 
 from scipy.optimize import fsolve
 
@@ -58,11 +59,17 @@ class LimitStateFunction():
     def __init__(self):
         pass
 
+
 class Bivariate():
-    def __init__(self, X, Y, family, parameter=0):
-        ''' copula: string. Either "Normal", "Clayton" or "Independent". '''
+    def __init__(self, X: list[scipy.stats.distributions.rv_frozen], family, parameter=0):
+        '''
+        Define a Bivariate object with three attributes:
+
+        X: list[scipy.stats.distributions.rv_frozen]. Contains the two random variables of the object.
+        family: string. Defines the type of bivariate copula of the elements of X.
+        parameter: float. Parameter of the bivariate copula family. Optional for the independent copula.
+        '''
         self.X = X
-        self.Y = Y
         self.family = family
         if family == "Normal":
             self.copula = pyc.Bicop(family=pyc.BicopFamily.gaussian, parameters=[parameter])
@@ -73,133 +80,139 @@ class Bivariate():
         else:
             raise ValueError("Invalid copula. Please choose between Normal, Clayton or Independent copulae. ")
 
-    def getMarginal(self, i):
-        """
-        Method to extract marginal distribution of index i from vector X of random variables.
-        """
-        if i == 0:
-            return self.X
-        elif i == 1:
-            return self.Y
-        else:
-            raise ValueError("Index out of range. Please select i=0 or i=1.")
+    def getMarginal(self, i: int)-> scipy.stats.distributions.rv_frozen:
+        '''
+        Returns the marginal distribution of variable X_i.
+        
+        i: int. Index of the marginal distribution returned (0 or 1).
+        '''
+        try:
+            return self.X[i]
+        except IndexError:
+            raise ValueError(
+                'Index i out of range. Please select i=0 or i=1.'
+            )
 
-    def drawMarginalPdf(self, i):
+    def drawMarginalPdf(self, i: int):
+        '''
+        Plot of the marginal probability density function (pdf) of variable X_i.
+
+        i: int. Index of the marginal distribution plotted (0 or 1).
+        '''
+
         f, ax = plt.subplots(figsize=(12, 8))
+
         var = self.getMarginal(i)
         x = np.linspace(var.ppf(0.01), var.ppf(0.99), 1000)
         y = var.pdf(x)
+
         ax.plot(x, y, label="pdf")
         ax.set_title(r"Probability density function of $X_{" + str(i) + "}$", fontsize=18)
-        ax.set_xlabel(r"$X_" + str(i) + "}$")
-        ax.set_ylabel(r"f($X_" + str(i) + "})$")
+        ax.set_xlabel(r"$x_" + str(i) + "}$")
+        ax.set_ylabel(r"f($x_" + str(i) + "})$")
         return f, ax
 
-    def drawMarginalCdf(self, i):
+    def drawMarginalCdf(self, i: int):
+        '''
+        Plot of the marginal cumulative density function (cdf) of variable X_i.
+
+        i: int. Index of the marginal distribution plotted (0 or 1).
+        '''
+
         f, ax = plt.subplots(figsize=(12, 8))
+
         var = self.getMarginal(i)
         x = np.linspace(var.ppf(0.01), var.ppf(0.99), 1000)
         y = var.cdf(x)
+
         ax.plot(x, y, label="cdf")
         ax.set_title(r"Cumulative density function of $X_{" + str(i) + "}$", fontsize=18)
-        ax.set_xlabel(r"$X_" + str(i) + "}$")
-        ax.set_xlabel(r"$F(X_" + str(i) + "})$")
+        ax.set_xlabel(r"$x_" + str(i) + "}$")
+        ax.set_xlabel(r"$F(x_" + str(i) + "})$")
         return f, ax
 
-    def bivariatePdf(self, x, y):
+    def bivariatePdf(self, x: list[float]) -> float:
         '''
-        Bivariate probability density function.
+        Computes the bivariate probability density function evaluated in x.
 
-        Arguments:
-        x, y: scalar. Coordinates at which the bivariate PDF is evaluated.
+        x: list. Coordinates at which the bivariate PDF is evaluated.
         '''
-        # pdf = copula.pdf(X.cdf(x), Y.cdf(y))
-        pdf = float(self.copula.pdf([[self.X.cdf(x), self.Y.cdf(y)]]))
+        # Compute the ranks of the coordinates
+        u0 = self.X[0].cdf(x[0])
+        u1 = self.X[1].cdf(x[1])
+
+        pdf = float(self.copula.pdf([[u0, u1]]))
         return pdf
 
-    def bivariateCdf(self, x, y):
+    def bivariateCdf(self, x: list[float]):
         '''
-        Bivariate cumulative density function.
+        Computes the bivariate cumulative density function evaluated in x.
 
-        Arguments:
-        x, y: scalar. Coordinates at which the bivariate CDF is evaluated.
+        x: list. Coordinates at which the bivariate CDF is evaluated.
         '''
-        # cdf = copula.cdf(X.cdf(x), Y.cdf(y))
-        cdf = float(self.copula.cdf([[self.X.cdf(x), self.Y.cdf(y)]]))
+        # Compute the ranks of the coordinates
+        u0 = self.X[0].cdf(x[0])
+        u1 = self.X[1].cdf(x[1])
+
+        cdf = float(self.copula.cdf([[u0, u1]]))
         return cdf
 
 
+# See how the methods below are affected by the creation of the LimitStateFunction class
     @staticmethod
-    def calculate_root_LSF(myLSF, i, values, start=0):
+    def calculate_root_LSF(myLSF, i: int, values: list[float], start:float = 0, max_attempts:int = 5) -> float:
+        '''
+        Calculates the value of X_i that cancels myLSF given the values in values.
 
+        myLSF: function. (Limit state) function whose root is to be determined.
+        i: int. Index of the missing value, see example.
+        values: (list) of values of all variables of myLSF but X_i.
+        start: float. Default start value for the execution of fsolve.
+        max_attempts: int. Maximum number of attempts for the convergence of fsolve.
+
+        Example:
+        func = x**2 - y
+        calculate_root_LSF(func, i=1, values=[3]) = 9
+        '''
+        # Define a temporary function with the missing variable as argument
         def temp_func(x):
             return myLSF(values[:i] + [x] + values[i+1:])
 
-        y = fsolve(temp_func, start)[0]
-        return y
-
-# Below, add case for which we have a vector of observations (column vector)
-    def pointLSF(self, myLSF, i, values, start=0, max_attempts=5):
-        ''' points: int, float, list or 1D ndarray. '''
-        if 0 <= i < len(values):
+        # For certain (non-monotonic) functions, inappropriate start_values of fsolve lead to RuntimeWarning
+        # and no convergence.
+        for _ in range(max_attempts):
             start_value = start
-            for _ in range(max_attempts):
-                try:
-                    y = self.calculate_root_LSF(myLSF, i, values, start_value)
-                    return y
-                except RuntimeWarning:
-                    start_value += 1
-        else:
-            raise ValueError("Index out of range. Please select i=0 or i=1.")
-
-    def plotLSF(self, myLSF, ax=None, xlim=None, ylim=None, reverse=False):
-        if reverse:
-            X = self.Y
-            Y = self.X
-        else:
-            X = self.X
-            Y = self.Y
-
-        if xlim is None:
-            if ax is None:
-                xlim = (X.ppf(0.01), X.ppf(0.99))
-            else: 
-                xlim = ax.get_xlim()
-        if ylim is None:
-            if ax is None:
-                ylim = (Y.ppf(0.01), Y.ppf(0.99))
+            try:
+                y = fsolve(temp_func, start_value)[0]
+            except RuntimeWarning:
+                start_value += 1
             else:
-                ylim = ax.get_ylim()
+                return y
+        raise Exception(
+            'An exception has occurred. Please reiterate with a different value of start.'
+        )
 
-        if ax is None:
-            f, ax = plt.subplots(figsize=(12,8))
-        else:
-            f = plt.gcf()
-            
-        x = np.linspace(xlim[0], xlim[1], 1000).reshape(-1,1)
-        y = self.pointLSF(myLSF, 0, x, start=(ylim[0]+ylim[1])/2)
-        if reverse:
-            ax.plot(y, x, label="LSF", color="r")
-        else:
-            ax.plot(x, y, label="LSF", color="r")
-        return f, ax
+    def plot_contour(self, ax=None, xlim=None, ylim=None, x_index: int = 0, nb_points=200):
+        '''
+        Plots the contour of the probability density function in the plane (X_{x_index}, X_{1-x_index}).
 
-    def plot_contour(self, ax=None, xlim=None, ylim=None, reverse=False, nb_points=200):
-        if reverse:
-            X1 = self.Y
-            X2 = self.X
-        else:
-            X1 = self.X
-            X2 = self.Y
+        myLSF: function. Limit state function.
+        ax: matplotlib.axes.Axes. Passed if the limit state function is plotted on an existing Axes object.
+        xlim, ylim: tuples. Limits on the x- and y-axes of the plot.
+        x_index: int. Defines which variable is set on the x-axis.
+        '''
+        rv_x = self.X[x_index]
+        rv_y = self.X[1-x_index]
 
         if xlim is None:
             if ax is None:
-                xlim = (X1.ppf(0.01), X1.ppf(0.99))
-            else: 
+                xlim = (rv_x.ppf(0.01), rv_x.ppf(0.99))
+            else:
                 xlim = ax.get_xlim()
+
         if ylim is None:
             if ax is None:
-                ylim = (X2.ppf(0.01), X2.ppf(0.99))
+                ylim = (rv_y.ppf(0.01), rv_y.ppf(0.99))
             else:
                 ylim = ax.get_ylim()
 
@@ -207,24 +220,66 @@ class Bivariate():
             f, ax = plt.subplots(figsize=(12, 8))
         else:
             f = plt.gcf()
-            
+
         x = np.linspace(xlim[0], xlim[1], nb_points).reshape(-1, 1)
         y = np.linspace(ylim[0], ylim[1], nb_points).reshape(-1, 1)
         X, Y = np.meshgrid(x,y)
+
         pdf = np.zeros(X.shape)
+        if x_index == 0:
+            for i in range(X.shape[0]):
+                for j in range(X.shape[1]):
+                    pdf[i,j] = self.bivariatePdf([X[i, j], Y[i, j]])
+        else:
+            for i in range(X.shape[0]):
+                for j in range(X.shape[1]):
+                    pdf[i,j] = self.bivariatePdf([Y[i, j], X[i, j]])
 
-        for i in range(X.shape[0]):
-            for j in range(X.shape[1]):
-                pdf[i,j] = self.bivariatePdf(X[i, j], Y[i, j])
-
-        ax.contour(X, Y, pdf, levels=8, cmap=cm.Blues) 
-        ax.set_aspect("equal")
+        ax.contour(X, Y, pdf, levels=8, cmap=cm.Blues)
+        ax.set_aspect("equal")    # ensures scales of both axis are the same (interpretation of the contours shapes)
         ax.set_xlim(xlim)
         ax.set_ylim(ylim)
         ax.set_xlabel(r"$X$")
         ax.set_ylabel(r"$Y$")
         return f, ax
 
+def plotLSF(self, myLSF, ax=None, xlim:tuple[float]=None, ylim:tuple[float]=None, x_index: int = 0):
+    '''
+    Plots the limit state function in the 2D plane (X_{x_index}, X_{1-x_index}).
+
+    myLSF: function. Limit state function.
+    ax: matplotlib.axes.Axes. Passed if the limit state function is plotted on an existing Axes object.
+    xlim, ylim: tuples. Limits on the x- and y-axes of the plot.
+    x_index: int. Defines which variable is set on the x-axis.
+    '''
+    rv_x = self.X[x_index]
+
+    if xlim is None:
+        if ax is None:
+            xlim = (rv_x.ppf(0.01), rv_x.ppf(0.99))
+        else:
+            xlim = ax.get_xlim()
+    if ylim is None and ax is not None:
+        ylim = ax.get_ylim()
+
+    if ax is None:
+        f, ax = plt.subplots(figsize=(12,8))
+    else:
+        f = plt.gcf()
+
+    x = np.linspace(xlim[0], xlim[1], 1000)
+    # Calculate the root of the limit state function for all points of the x-axis
+    y = [self.calculate_root_LSF(myLSF, i= 1-x_index, values=[k]) for k in x]
+
+    ax.plot(x, y, label="LSF", color="r")
+    ax.set_xlim(xlim)
+    # Fix y-limits if they exist
+    try:
+        ax.set_ylim(ylim)
+    except:
+        pass
+
+    return f, ax
 
 def sampling_cop(cop1, cop2, cond_cop=pyc.Bicop(), n=10000):
     ''' 
