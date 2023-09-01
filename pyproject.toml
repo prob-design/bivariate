@@ -22,7 +22,6 @@ dependencies = [
     'seaborn',
     'scipy',
     'ipykernel',
-    'pybind11',
     'pyvinecopulib',
 ]
 
