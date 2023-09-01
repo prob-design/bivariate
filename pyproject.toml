@@ -1,0 +1,59 @@
+[build-system]
+requires = ["setuptools>=42.0", "wheel"]
+build-backend = "setuptools.build_meta"
+
+
+[project]
+name='bivariate'
+version='2.0.0'
+description='This package contains methods that assist in performing bivariate analysis of datasets.'
+license = {file = "LICENSE.txt"}
+authors = [
+  {email = "r.lanzafame@tudelft.nl"},
+  {name = "Robert Lanzafame"}
+]
+
+# packages=find_packages(exclude=['old_package*']),
+
+dependencies = [
+    'numpy',
+    'pandas',
+    'matplotlib >= 3.5.0',
+    'seaborn',
+    'scipy',
+    'ipykernel',
+    'pybind11',
+    'pyvinecopulib',
+]
+
+[project.urls]
+Repository = 'https://github.com/prob-design/bivariate.git'
+
+[project.optional-dependencies]
+test = [
+  "pytest == 7.4.0",
+  "pytest-cov > 4.0.0",
+  "mypy == 1.5.1",
+]
+
+
+[tool.pytest.ini_options]
+addopts = "--cov=bivariate"
+testpaths = [
+    "tests",
+]
+
+
+[tool.mypy]
+mypy_path = "src"
+check_untyped_defs = true
+disallow_any_generics = true
+ignore_missing_imports = true
+no_implicit_optional = true
+show_error_codes = true
+strict_equality = true
+warn_redundant_casts = true
+warn_return_any = true
+warn_unreachable = true
+warn_unused_configs = true
+no_implicit_reexport = true
