@@ -380,6 +380,7 @@ class Multivariate():
             'Index y_index out of range. Please select a value between 0 and 2.'
 
         rv_x = self.rv[x_index]
+        rv_y = self.rv[y_index]
 
         f, ax = plt.subplots(figsize=(10,6))
         if xlim is None:
@@ -397,24 +398,27 @@ class Multivariate():
                                      x.reshape(-1, 1)),  axis=1)
         else:
             bivar = self.B3
-            if x_index < y_index:
+            if x_index > y_index:
                 values = np.concatenate((cond.reshape(-1, 1),
                                          x.reshape(-1, 1)), axis=1)
             else:
                 values = np.concatenate((x.reshape(-1, 1),
                                          cond.reshape(-1, 1)), axis=1)
 
+        if ylim is None:
+            ylim = (rv_y.ppf(0.01), rv_y.ppf(0.99))
         relat_index = 1 * (x_index < y_index)
-        bivar.plot_contour(ax, xlim=(x[0], x[-1]), x_index=relat_index)
+        bivar.plot_contour(ax, xlim=(x[0], x[-1]), ylim=ylim, x_index=relat_index)
 
         y = [calculate_root_LSF(myLSF, i=y_index, values=list(k)) for k in values]
-        ax.plot(x, y, label='LSF')
-        # bivar.plotLSF(myLSF, ax, xlim=(x[0], x[-1]), x_index=relat_index)
+        ax.plot(x, y, color='k', label='LSF')
 
-        
+        # Add shading of the failure domain (and symbol \Omega in the domain)
+
         ax.set_title(fr"Bivariate contours and limit-state function in the plane $(X_{{{x_index}}}, X_{{{y_index}}})$")
         ax.set_xlabel(fr"$x_{{{x_index}}}$")
         ax.set_ylabel(fr"$x_{{{y_index}}}$")
         ax.set_xlim(xlim)
         ax.set_ylim(ylim)
+        ax.legend()
         return f, ax
