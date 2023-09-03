@@ -1,5 +1,6 @@
 import scipy.stats as st
 import pytest
+import itertools
 
 from bivariate.class_multivar import Bivariate, Multivariate
 
@@ -20,20 +21,24 @@ X3 = st.norm(3,1.7)
 
 @pytest.fixture
 def bivar():
-    return [Bivariate(X1, X2, 'Normal', 0.5), Bivariate(X2, X3, 'Clayton', 1.5),
-            Bivariate(X1, X3, 'Independent')]
+    return [Bivariate([X1, X2], 'Normal', 0.5), Bivariate([X2, X3], 'Clayton', 1.5),
+            Bivariate([X1, X3], 'Independent')]
 
 
 @pytest.fixture
-def myLSF_2D():
-    return lambda x: x[0] - x[1]**2
+def limitstatefunc2D():
+
+    def myLSF_2D(x):
+        return x[0] - x[1]**2
+
+    return myLSF_2D
 
 
-def test_bivariate_marginal_plots(bivar, myLSF_2D):
+def test_bivariate_marginal_plots(bivar, limitstatefunc2D):
     for b in bivar:
         b.drawMarginalCdf(0)
         b.drawMarginalPdf(1)
-        b.plotLSF(limitstatefunc)
+        b.plotLSF(limitstatefunc2D())
         b.plot_contour(nb_points=100)
 
 
@@ -45,8 +50,12 @@ def multivar():
 
 
 @pytest.fixture
-def myLSF_3D(x):
-    return x[0] + 3*x[1]**3 - 8*x[2]
+def limitstatefunc3D():
+
+    def myLSF_3D(x):
+        return x[0] + 3*x[1]**3 - 8*x[2]
+
+    return myLSF_3D
 
 
 def test_marginal_plots(multivar):
@@ -55,11 +64,11 @@ def test_marginal_plots(multivar):
         multivar.drawMarginalCdf(i)
 
 
-def test_multivariate_plot(multivar, myLSF_3D):
+def test_multivariate_plot(multivar, limitstatefunc3D):
     ''' Test the plotting of the bivariate plot for all combinations of (x_index, y_index). '''
     indices = [0, 1, 2]
     for combi in list(itertools.permutations(indices, 2)):
         multivar.bivariate_plot(x_index=combi[0],
                                 y_index=combi[1],
-                                myLSF=myLSF_3D,
+                                myLSF=limitstatefunc3D,
                                 z=1)

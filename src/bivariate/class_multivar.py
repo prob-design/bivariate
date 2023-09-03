@@ -363,8 +363,6 @@ class Multivariate():
         ax.set_title(fr'Cumulative density function of $X_{{{i}}}$', fontsize=18)
         return f, ax
 
-    def pdf(self, x):
-        f_cond_23 =
 
     def bivariate_plot(self, x_index, y_index, myLSF, z:float, xlim=None, ylim=None):
         '''
