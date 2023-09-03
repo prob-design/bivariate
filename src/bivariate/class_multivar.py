@@ -315,8 +315,9 @@ class Multivariate():
         if all(cop[0] == 'Normal' for cop in copulas):
             family = pyc.BicopFamily.gaussian
             parameter = [copulas[2][1]]
+            self.__cond_copula = pyc.Bicop(family=pyc.BicopFamily.gaussian, parameters=[parameter])
             x = sampling_cop(self.B1.copula, self.B2.copula, 
-                             cond_cop=pyc.Bicop(family=family, parameters=parameter))
+                             cond_cop=self.__cond_copula)
             fitted_copula = fit_copula(x[:, 0], x[:, 2], family=family)
             self.B3 = Bivariate([rv[0], rv[2]], 'Normal', parameter=float(fitted_copula.parameters))
         else:
@@ -361,6 +362,9 @@ class Multivariate():
         ax.set_ylabel('$F(x_' + str(i) + ')$', fontsize=15)
         ax.set_title(fr'Cumulative density function of $X_{{{i}}}$', fontsize=18)
         return f, ax
+
+    def pdf(self, x):
+        f_cond_23 =
 
     def bivariate_plot(self, x_index, y_index, myLSF, z:float, xlim=None, ylim=None):
         '''
