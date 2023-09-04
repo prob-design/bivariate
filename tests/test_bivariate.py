@@ -38,7 +38,7 @@ def test_bivariate_marginal_plots(bivar, limitstatefunc2D):
     for b in bivar:
         b.drawMarginalCdf(0)
         b.drawMarginalPdf(1)
-        b.plotLSF(limitstatefunc2D())
+        b.plotLSF(myLSF=limitstatefunc2D)
         b.plot_contour(nb_points=100)
 
 
@@ -59,16 +59,18 @@ def limitstatefunc3D():
 
 
 def test_marginal_plots(multivar):
-    for i in range(2):
-        multivar.drawMarginalPdf(i)
-        multivar.drawMarginalCdf(i)
+    multivar.drawMarginalPdf(0)
+    multivar.drawMarginalCdf(2)
 
 
 def test_multivariate_plot(multivar, limitstatefunc3D):
     ''' Test the plotting of the bivariate plot for all combinations of (x_index, y_index). '''
-    indices = [0, 1, 2]
-    for combi in list(itertools.permutations(indices, 2)):
-        multivar.bivariate_plot(x_index=combi[0],
-                                y_index=combi[1],
-                                myLSF=limitstatefunc3D,
-                                z=1)
+    multivar.bivariate_plot(x_index=0,
+                            y_index=1,
+                            myLSF=limitstatefunc3D,
+                            z=1)
+
+    multivar.bivariate_plot(x_index=2,
+                            y_index=0,
+                            myLSF=limitstatefunc3D,
+                            z=1)

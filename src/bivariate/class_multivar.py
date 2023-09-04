@@ -204,7 +204,7 @@ class Bivariate():
         #ax.set_xlim(xlim)
         #ax.set_ylim(ylim)
         ax.set_xlabel('$x_' + str(x_index) + '$', fontsize=15)
-        ax.set_ylabel('$x' + str(1 - x_index) + '$', fontsize=15)
+        ax.set_ylabel('$x_' + str(1 - x_index) + '$', fontsize=15)
         return f, ax
 
 
@@ -250,6 +250,117 @@ class Bivariate():
 
         # Add shading of the failure region (myLSF<0 or else)
 
+        return f, ax
+
+    def p_and(self, x: float, y: float):
+        """ Computes the probability P(X>x,Y>y). """
+        u = self.rv[0].cdf(x)
+        v = self.rv[1].cdf(y)
+        c = self.bivariateCdf([x, y])
+        return 1 - u - v + c
+
+    def plot_and(self, x, y, x_index=0, ax=None, contour=False, xlim=None, ylim=None):
+        """ Computes the probability P(X>x,Y>y) and draws the related figure. """
+        rv_x = self.rv[x_index]
+        rv_y = self.rv[1-x_index]
+
+        if ax is None:
+            f, ax = plt.subplots(1)
+        else:
+            f = plt.gcf()
+
+        if xlim is None:
+            xlim = (rv_x.ppf(0.01), rv_x.ppf(0.99))
+        if ylim is None:
+            ylim = (rv_y.ppf(0.01), rv_y.ppf(0.99))
+
+        if contour:
+            self.plot_contour(ax)
+
+        # if not compare:
+        #     color = "lightgrey"
+        #     zorder = 3
+        # else:
+        #     color = "grey"
+        #     zorder = 5
+
+        ax.vlines(x, ymin=ylim[0], ymax=ylim[1], colors='k', linestyles="dashed")
+        ax.hlines(y, xmin=xlim[0], xmax=xlim[1], colors='k', linestyles="dashed")
+        ax.vlines(x, ymin=ylim[0], ymax=ylim[1], colors='k', linestyles="dashed")
+        ax.hlines(y, xmin=xlim[0], xmax=xlim[1], colors='k', linestyles="dashed")
+        ax.fill_between([x, xlim[1]], y, ylim[1], color='lightgrey', linewidth=2, edgecolor="k", alpha=1)
+        ax.set_aspect('equal')
+        ax.set_xlim(xlim)
+        ax.set_ylim(ylim)
+        p = self.p_and(x, y)
+        # if not compare:
+        if p < 0.01:
+            ax.text(.01, .01, r"$(P=$" + "{:.2e})".format(p), ha="left", va="bottom", transform=ax.transAxes)
+        else:
+            ax.text(.01, .01, r"$(P=$" + "{:.4f})".format(p), ha="left", va="bottom", transform=ax.transAxes)
+        # else:
+        #     if p < 0.01:
+        #         ax.text(.01, .07, r"$(P_{2}=$" + "{:.2e})".format(p), ha="left", transform=ax.transAxes)
+        #     else:
+        #         ax.text(.01, .07, r"$(P_{2}=$" + "{:.4f})".format(p), ha="left", transform=ax.transAxes)
+
+        ax.set_title("$p_{AND}$", fontsize=18)
+        ax.set_xlabel('$x_' + str(x_index) + '$', fontsize=15)
+        ax.set_ylabel('$x_' + str(1 - x_index) + '$', fontsize=15)
+        return f, ax
+
+    def p_or(self, x, y):
+        """ Computes the probability P(X>x OR Y>y). """
+        c = self.bivariateCdf([x, y])
+        return 1 - c
+
+    def plot_or(self, x, y, x_index=0, ax=None, contour=False, xlim=None, ylim=None):
+        """ Computes the probability P(X>x OR Y>y) and draws the related figure. """
+        rv_x = self.rv[x_index]
+        rv_y = self.rv[1 - x_index]
+
+        if ax is None:
+            f, ax = plt.subplots(1)
+        else:
+            f = plt.gcf()
+
+        if contour:
+            self.plot_contour(ax)
+
+        if xlim is None:
+            xlim = (rv_x.ppf(0.01), rv_x.ppf(0.99))
+        if ylim is None:
+            ylim = (rv_y.ppf(0.01), rv_y.ppf(0.99))
+
+        # if not compare:
+        #     color = "lightgrey"
+        #     zorder = 1
+        # else:
+        #     color = "grey"
+        #     zorder = 4
+
+        ax.vlines(x, ymin=y, ymax=ylim[1], colors='k', linestyles="dashed")
+        ax.hlines(y, xmin=x, xmax=xlim[1], colors='k', linestyles="dashed")
+        ax.fill_between(np.array([xlim[0], x, x, xlim[1]]), np.array([y, y, ylim[0], ylim[0]]),
+                        ylim[1], color='lightgrey', linewidth=2, edgecolor="k")
+
+        ax.set_aspect('equal')
+        ax.set_xlim(xlim)
+        ax.set_ylim(ylim)
+        p = self.p_or(x, y)
+        # if not compare:
+        if p < 0.01:
+            ax.text(.01, .01, r"$(P=$" + "{:.2e})".format(p), ha="left", va="bottom", transform=ax.transAxes)
+        else:
+            ax.text(.01, .01, r"$(P=$" + "{:.4f})".format(p), ha="left", va="bottom", transform=ax.transAxes)
+        # else:
+        #     if p < 0.01:
+        #         ax.text(.01, .07, r"$(P_{2}=$" + "{:.2e})".format(p), ha="left", transform=ax.transAxes)
+        #     else:
+        #         ax.text(.01, .07, r"$(P_{2}=$" + "{:.4f})".format(p), ha="left", transform=ax.transAxes)
+        ax.set_title("$p_{OR}$", fontsize=18)
+        ax.set_xlabel('$x_' + str(x_index) + '$', fontsize=15)
+        ax.set_ylabel('$x_' + str(1 - x_index) + '$', fontsize=15)
         return f, ax
 
 
