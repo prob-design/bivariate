@@ -61,9 +61,11 @@ def limitstatefunc3D():
 def test_marginal_plots(multivar):
     multivar.drawMarginalPdf(0)
     multivar.drawMarginalCdf(2)
+    with pytest.raises(AssertionError):
+        multivar.drawMarginalPdf(4)
+        multivar.drawMarginalCdf('a')
 
-
-def test_multivariate_plot(multivar, limitstatefunc3D):
+def test_bivariate_plot(multivar, limitstatefunc3D):
     ''' Test the plotting of the bivariate plot for all combinations of (x_index, y_index). '''
     multivar.bivariate_plot(x_index=0,
                             y_index=1,
@@ -74,3 +76,13 @@ def test_multivariate_plot(multivar, limitstatefunc3D):
                             y_index=0,
                             myLSF=limitstatefunc3D,
                             z=1)
+
+    with pytest.raises(AssertionError):
+        multivar.bivariate_plot(x_index=1, y_index=1,
+                                myLSF=limitstatefunc3D, z=1)
+        multivar.bivariate_plot(x_index=2, y_index=3,
+                                myLSF=limitstatefunc3D, z=1)
+
+def test_and_or_plots(multivar):
+    multivar.plot_or(1.2, 0.8, x_index=0, y_index=2)
+    multivar.plot_or(-1, 0.8, x_index=2, y_index=1)

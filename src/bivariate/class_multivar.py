@@ -440,6 +440,8 @@ class Multivariate():
 
         i: int. Index of the marginal distribution returned (0, 1 or 2).
         '''
+        assert (i >= 0 and i <= 2), \
+            'Index i out of range. Please select a value between 0 and 2.'
         return self.rv[i]
 
     def drawMarginalPdf(self, i):
@@ -448,6 +450,9 @@ class Multivariate():
 
         i: int. Index of the marginal distribution plotted (0, 1 or 2).
         '''
+        assert (i >= 0 and i <= 2), \
+            'Index i out of range. Please select a value between 0 and 2.'
+
         f, ax = plt.subplots(figsize=(10, 6))
         rv_x = self.rv[i]
         x = np.linspace(rv_x.ppf(0.01), rv_x.ppf(0.99), 1000)
@@ -464,6 +469,9 @@ class Multivariate():
 
         i: int. Index of the marginal distribution plotted (0 or 1).
         '''
+        assert (i >= 0 and i <= 2), \
+            'Index i out of range. Please select a value between 0 and 2.'
+
         f, ax = plt.subplots(figsize=(10, 6))
         rv_x = self.rv[i]
         x = np.linspace(rv_x.ppf(0.01), rv_x.ppf(0.99), 1000)
@@ -537,6 +545,13 @@ class Multivariate():
         return f, ax
 
     def plot_or(self, x, y, x_index, y_index, contour=False):
+        assert x_index != y_index, \
+            'Values of x_index and y_index are identical. Please select different values of x_index or y_index.'
+        assert (x_index >= 0 and x_index <= 2), \
+            'Index x_index out of range. Please select a value between 0 and 2.'
+        assert (y_index >= 0 and y_index <= 2), \
+            'Index y_index out of range. Please select a value between 0 and 2.'
+
         relat_index = 1 * (x_index > y_index)
         if x_index + y_index == 1:
             bivar = self.B1
@@ -550,6 +565,13 @@ class Multivariate():
         return f, ax
 
     def plot_and(self, x, y, x_index, y_index, contour=False):
+        assert x_index != y_index, \
+            'Values of x_index and y_index are identical. Please select different values of x_index or y_index.'
+        assert (x_index >= 0 and x_index <= 2), \
+            'Index x_index out of range. Please select a value between 0 and 2.'
+        assert (y_index >= 0 and y_index <= 2), \
+            'Index y_index out of range. Please select a value between 0 and 2.'
+
         relat_index = 1 * (x_index > y_index)
         if x_index + y_index == 1:
             bivar = self.B1
