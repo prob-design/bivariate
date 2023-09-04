@@ -275,7 +275,7 @@ class Bivariate():
             ylim = (rv_y.ppf(0.01), rv_y.ppf(0.99))
 
         if contour:
-            self.plot_contour(ax)
+            self.plot_contour(ax, xlim=xlim, ylim=ylim)
 
         # if not compare:
         #     color = "lightgrey"
@@ -324,13 +324,13 @@ class Bivariate():
         else:
             f = plt.gcf()
 
-        if contour:
-            self.plot_contour(ax)
-
         if xlim is None:
             xlim = (rv_x.ppf(0.01), rv_x.ppf(0.99))
         if ylim is None:
             ylim = (rv_y.ppf(0.01), rv_y.ppf(0.99))
+
+        if contour:
+            self.plot_contour(ax, xlim=xlim, ylim=ylim)
 
         # if not compare:
         #     color = "lightgrey"
@@ -535,3 +535,30 @@ class Multivariate():
         ax.set_ylim(ylim)
         ax.legend()
         return f, ax
+
+    def plot_or(self, x, y, x_index, y_index, contour=False):
+        relat_index = 1 * (x_index > y_index)
+        if x_index + y_index == 1:
+            bivar = self.B1
+        elif x_index + y_index ==3:
+            bivar = self.B2
+        else:
+            bivar = self.B3
+        f, ax = bivar.plot_or(x, y, x_index=relat_index, contour=contour)
+        ax.set_xlabel(fr"$x_{{{x_index}}}$")
+        ax.set_ylabel(fr"$x_{{{y_index}}}$")
+        return f, ax
+
+    def plot_and(self, x, y, x_index, y_index, contour=False):
+        relat_index = 1 * (x_index > y_index)
+        if x_index + y_index == 1:
+            bivar = self.B1
+        elif x_index + y_index ==3:
+            bivar = self.B2
+        else:
+            bivar = self.B3
+        f, ax = bivar.plot_and(x, y, x_index=relat_index, contour=contour)
+        ax.set_xlabel(fr"$x_{{{x_index}}}$")
+        ax.set_ylabel(fr"$x_{{{y_index}}}$")
+        return f, ax
+
