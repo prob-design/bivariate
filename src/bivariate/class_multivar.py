@@ -259,7 +259,7 @@ class Bivariate():
         c = self.bivariateCdf([x, y])
         return 1 - u - v + c
 
-    def plot_and(self, x, y, x_index=0, ax=None, contour=False, xlim=None, ylim=None):
+    def plot_and(self, x, y, x_index=0, ax=None, contour=False, xlim=None, ylim=None, compare=False):
         """ Computes the probability P(X>x,Y>y) and draws the related figure. """
         rv_x = self.rv[x_index]
         rv_y = self.rv[1-x_index]
@@ -277,32 +277,32 @@ class Bivariate():
         if contour:
             self.plot_contour(ax, xlim=xlim, ylim=ylim)
 
-        # if not compare:
-        #     color = "lightgrey"
-        #     zorder = 3
-        # else:
-        #     color = "grey"
-        #     zorder = 5
+        if not compare:
+            color = "lightgrey"
+            zorder = 3
+        else:
+            color = "grey"
+            zorder = 5
 
-        ax.vlines(x, ymin=ylim[0], ymax=ylim[1], colors='k', linestyles="dashed")
-        ax.hlines(y, xmin=xlim[0], xmax=xlim[1], colors='k', linestyles="dashed")
-        ax.vlines(x, ymin=ylim[0], ymax=ylim[1], colors='k', linestyles="dashed")
-        ax.hlines(y, xmin=xlim[0], xmax=xlim[1], colors='k', linestyles="dashed")
-        ax.fill_between([x, xlim[1]], y, ylim[1], color='lightgrey', linewidth=2, edgecolor="k", alpha=1)
+        ax.vlines(x, ymin=ylim[0], ymax=ylim[1], colors='k', linestyles="dashed", zorder=zorder+1)
+        ax.hlines(y, xmin=xlim[0], xmax=xlim[1], colors='k', linestyles="dashed", zorder=zorder+1)
+        ax.vlines(x, ymin=ylim[0], ymax=ylim[1], colors='k', linestyles="dashed", zorder=zorder+1)
+        ax.hlines(y, xmin=xlim[0], xmax=xlim[1], colors='k', linestyles="dashed", zorder=zorder+1)
+        ax.fill_between([x, xlim[1]], y, ylim[1], color='lightgrey', linewidth=2, edgecolor="k", alpha=1, zorder=zorder)
         ax.set_aspect('equal')
         ax.set_xlim(xlim)
         ax.set_ylim(ylim)
         p = self.p_and(x, y)
-        # if not compare:
-        if p < 0.01:
-            ax.text(.01, .01, r"$(P=$" + "{:.2e})".format(p), ha="left", va="bottom", transform=ax.transAxes)
+        if not compare:
+            if p < 0.01:
+                ax.text(.01, .01, r"$(P=$" + "{:.2e})".format(p), ha="left", va="bottom", transform=ax.transAxes)
+            else:
+                ax.text(.01, .01, r"$(P=$" + "{:.4f})".format(p), ha="left", va="bottom", transform=ax.transAxes)
         else:
-            ax.text(.01, .01, r"$(P=$" + "{:.4f})".format(p), ha="left", va="bottom", transform=ax.transAxes)
-        # else:
-        #     if p < 0.01:
-        #         ax.text(.01, .07, r"$(P_{2}=$" + "{:.2e})".format(p), ha="left", transform=ax.transAxes)
-        #     else:
-        #         ax.text(.01, .07, r"$(P_{2}=$" + "{:.4f})".format(p), ha="left", transform=ax.transAxes)
+            if p < 0.01:
+                ax.text(.01, .07, r"$(P_{2}=$" + "{:.2e})".format(p), ha="left", transform=ax.transAxes)
+            else:
+                ax.text(.01, .07, r"$(P_{2}=$" + "{:.4f})".format(p), ha="left", transform=ax.transAxes)
 
         ax.set_title("$p_{AND}$ (=" + str(p) + ")", fontsize=18)
         ax.set_xlabel('$x_' + str(x_index) + '$', fontsize=15)
@@ -314,7 +314,7 @@ class Bivariate():
         c = self.bivariateCdf([x, y])
         return 1 - c
 
-    def plot_or(self, x, y, x_index=0, ax=None, contour=False, xlim=None, ylim=None):
+    def plot_or(self, x, y, x_index=0, ax=None, contour=False, xlim=None, ylim=None, compare=False):
         """ Computes the probability P(X>x OR Y>y) and draws the related figure. """
         rv_x = self.rv[x_index]
         rv_y = self.rv[1 - x_index]
@@ -332,17 +332,17 @@ class Bivariate():
         if contour:
             self.plot_contour(ax, xlim=xlim, ylim=ylim)
 
-        # if not compare:
-        #     color = "lightgrey"
-        #     zorder = 1
-        # else:
-        #     color = "grey"
-        #     zorder = 4
+        if not compare:
+            color = "lightgrey"
+            zorder = 1
+        else:
+            color = "grey"
+            zorder = 4
 
-        ax.vlines(x, ymin=y, ymax=ylim[1], colors='k', linestyles="dashed")
-        ax.hlines(y, xmin=x, xmax=xlim[1], colors='k', linestyles="dashed")
+        ax.vlines(x, ymin=y, ymax=ylim[1], colors='k', linestyles="dashed", zorder=zorder+2)
+        ax.hlines(y, xmin=x, xmax=xlim[1], colors='k', linestyles="dashed", zorder=zorder+2)
         ax.fill_between(np.array([xlim[0], x, x, xlim[1]]), np.array([y, y, ylim[0], ylim[0]]),
-                        ylim[1], color='lightgrey', linewidth=2, edgecolor="k")
+                        ylim[1], color='lightgrey', linewidth=2, edgecolor="k", zorder=zorder)
 
         ax.set_aspect('equal')
         ax.set_xlim(xlim)
@@ -544,7 +544,7 @@ class Multivariate():
         ax.legend()
         return f, ax
 
-    def plot_or(self, x, y, x_index, y_index, contour=False):
+    def plot_or(self, x, y, x_index, y_index, contour=False, compare=False):
         assert x_index != y_index, \
             'Values of x_index and y_index are identical. Please select different values of x_index or y_index.'
         assert (x_index >= 0 and x_index <= 2), \
@@ -559,12 +559,12 @@ class Multivariate():
             bivar = self.B2
         else:
             bivar = self.B3
-        f, ax = bivar.plot_or(x, y, x_index=relat_index, contour=contour)
+        f, ax = bivar.plot_or(x, y, x_index=relat_index, contour=contour, compare=compare)
         ax.set_xlabel(fr"$x_{{{x_index}}}$")
         ax.set_ylabel(fr"$x_{{{y_index}}}$")
         return f, ax
 
-    def plot_and(self, x, y, x_index, y_index, contour=False):
+    def plot_and(self, x, y, x_index, y_index, contour=False, compare=False):
         assert x_index != y_index, \
             'Values of x_index and y_index are identical. Please select different values of x_index or y_index.'
         assert (x_index >= 0 and x_index <= 2), \
@@ -579,7 +579,7 @@ class Multivariate():
             bivar = self.B2
         else:
             bivar = self.B3
-        f, ax = bivar.plot_and(x, y, x_index=relat_index, contour=contour)
+        f, ax = bivar.plot_and(x, y, x_index=relat_index, contour=contour, compare=compare)
         ax.set_xlabel(fr"$x_{{{x_index}}}$")
         ax.set_ylabel(fr"$x_{{{y_index}}}$")
         return f, ax
