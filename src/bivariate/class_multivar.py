@@ -304,7 +304,7 @@ class Bivariate():
         #     else:
         #         ax.text(.01, .07, r"$(P_{2}=$" + "{:.4f})".format(p), ha="left", transform=ax.transAxes)
 
-        ax.set_title("$p_{AND}$", fontsize=18)
+        ax.set_title("$p_{AND}$ (=" + str(p) + ")", fontsize=18)
         ax.set_xlabel('$x_' + str(x_index) + '$', fontsize=15)
         ax.set_ylabel('$x_' + str(1 - x_index) + '$', fontsize=15)
         return f, ax
@@ -358,7 +358,7 @@ class Bivariate():
         #         ax.text(.01, .07, r"$(P_{2}=$" + "{:.2e})".format(p), ha="left", transform=ax.transAxes)
         #     else:
         #         ax.text(.01, .07, r"$(P_{2}=$" + "{:.4f})".format(p), ha="left", transform=ax.transAxes)
-        ax.set_title("$p_{OR}$", fontsize=18)
+        ax.set_title("$p_{OR}$ (=" + str(p) + ")", fontsize=18)
         ax.set_xlabel('$x_' + str(x_index) + '$', fontsize=15)
         ax.set_ylabel('$x_' + str(1 - x_index) + '$', fontsize=15)
         return f, ax
