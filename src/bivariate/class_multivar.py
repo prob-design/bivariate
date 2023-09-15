@@ -3,6 +3,8 @@ import matplotlib.pyplot as plt
 import matplotlib.cm as cm
 import scipy.stats.distributions
 
+from mpl_toolkits.mplot3d import axes3d
+
 from scipy.optimize import fsolve
 
 import pyvinecopulib as pyc
@@ -189,20 +191,19 @@ class Bivariate():
         y = np.linspace(ylim[0], ylim[1], nb_points).reshape(-1, 1)
         X, Y = np.meshgrid(x, y)
 
-        pdf = np.zeros(X.shape)
+        Z = np.zeros(X.shape)
         if x_index == 0:
-            for i in range(X.shape[0]):
-                for j in range(X.shape[1]):
-                    pdf[i, j] = self.bivariatePdf([X[i, j], Y[i, j]])
+            for i in range(Z.shape[0]):
+                for j in range(Z.shape[1]):
+                    Z[i, j] = self.bivariatePdf([X[i, j], Y[i, j]])
         else:
-            for i in range(X.shape[0]):
-                for j in range(X.shape[1]):
-                    pdf[i, j] = self.bivariatePdf([Y[i, j], X[i, j]])
+            for i in range(Z.shape[0]):
+                for j in range(Z.shape[1]):
+                    Z[i, j] = self.bivariatePdf([Y[i, j], X[i, j]])
 
-        ax.contour(X, Y, pdf, levels=8, cmap=cm.Blues)
-        ax.set_aspect('equal')    # ensures scales of both axis are the same (interpretation of the contours shapes)
-        #ax.set_xlim(xlim)
-        #ax.set_ylim(ylim)
+        ax.contour(X, Y, Z, levels=8, cmap=cm.Blues)
+
+        # ax.set_aspect('equal')    # ensures scales of both axis are the same (interpretation of the contours shapes)
         ax.set_xlabel('$x_' + str(x_index) + '$', fontsize=15)
         ax.set_ylabel('$x_' + str(1 - x_index) + '$', fontsize=15)
         return f, ax
@@ -288,23 +289,26 @@ class Bivariate():
         ax.hlines(y, xmin=xlim[0], xmax=xlim[1], colors='k', linestyles="dashed", zorder=zorder+1)
         ax.vlines(x, ymin=ylim[0], ymax=ylim[1], colors='k', linestyles="dashed", zorder=zorder+1)
         ax.hlines(y, xmin=xlim[0], xmax=xlim[1], colors='k', linestyles="dashed", zorder=zorder+1)
-        ax.fill_between([x, xlim[1]], y, ylim[1], color='lightgrey', linewidth=2, edgecolor="k", alpha=1, zorder=zorder)
         ax.set_aspect('equal')
+        ax.fill_between([x, xlim[1]], y, ylim[1], color=color, linewidth=2, edgecolor="k", alpha=1, zorder=zorder)
         ax.set_xlim(xlim)
         ax.set_ylim(ylim)
         p = self.p_and(x, y)
         if not compare:
             if p < 0.01:
                 ax.text(.01, .01, r"$(P=$" + "{:.2e})".format(p), ha="left", va="bottom", transform=ax.transAxes)
+                ax.set_title("$p_{AND}$" + " (={:.2e}".format(p) + ")", fontsize=18)
             else:
                 ax.text(.01, .01, r"$(P=$" + "{:.4f})".format(p), ha="left", va="bottom", transform=ax.transAxes)
+                ax.set_title("$p_{AND}$" + " (={:.4f}".format(p) + ")", fontsize=18)
         else:
             if p < 0.01:
                 ax.text(.01, .07, r"$(P_{2}=$" + "{:.2e})".format(p), ha="left", transform=ax.transAxes)
+                ax.set_title("$p_{AND}$" + " (={:.2e}".format(p) + ")", fontsize=18)
             else:
                 ax.text(.01, .07, r"$(P_{2}=$" + "{:.4f})".format(p), ha="left", transform=ax.transAxes)
+                ax.set_title("$p_{AND}$" + " (={:.4f}".format(p) + ")", fontsize=18)
 
-        ax.set_title("$p_{AND}$ (=" + str(p) + ")", fontsize=18)
         ax.set_xlabel('$x_' + str(x_index) + '$', fontsize=15)
         ax.set_ylabel('$x_' + str(1 - x_index) + '$', fontsize=15)
         return f, ax
@@ -342,23 +346,26 @@ class Bivariate():
         ax.vlines(x, ymin=y, ymax=ylim[1], colors='k', linestyles="dashed", zorder=zorder+2)
         ax.hlines(y, xmin=x, xmax=xlim[1], colors='k', linestyles="dashed", zorder=zorder+2)
         ax.fill_between(np.array([xlim[0], x, x, xlim[1]]), np.array([y, y, ylim[0], ylim[0]]),
-                        ylim[1], color='lightgrey', linewidth=2, edgecolor="k", zorder=zorder)
+                        ylim[1], color=color, linewidth=2, edgecolor="k", zorder=zorder)
 
         ax.set_aspect('equal')
         ax.set_xlim(xlim)
         ax.set_ylim(ylim)
         p = self.p_or(x, y)
-        # if not compare:
-        if p < 0.01:
-            ax.text(.01, .01, r"$(P=$" + "{:.2e})".format(p), ha="left", va="bottom", transform=ax.transAxes)
+        if not compare:
+            if p < 0.01:
+                ax.text(.01, .01, r"$(P=$" + "{:.2e})".format(p), ha="left", va="bottom", transform=ax.transAxes)
+                ax.set_title("$p_{AND}$" + " (={:.2e}".format(p) + ")", fontsize=18)
+            else:
+                ax.text(.01, .01, r"$(P=$" + "{:.4f})".format(p), ha="left", va="bottom", transform=ax.transAxes)
+                ax.set_title("$p_{AND}$" + " (={:.4f}".format(p) + ")", fontsize=18)
         else:
-            ax.text(.01, .01, r"$(P=$" + "{:.4f})".format(p), ha="left", va="bottom", transform=ax.transAxes)
-        # else:
-        #     if p < 0.01:
-        #         ax.text(.01, .07, r"$(P_{2}=$" + "{:.2e})".format(p), ha="left", transform=ax.transAxes)
-        #     else:
-        #         ax.text(.01, .07, r"$(P_{2}=$" + "{:.4f})".format(p), ha="left", transform=ax.transAxes)
-        ax.set_title("$p_{OR}$ (=" + str(p) + ")", fontsize=18)
+            if p < 0.01:
+                ax.text(.01, .07, r"$(P_{2}=$" + "{:.2e})".format(p), ha="left", transform=ax.transAxes)
+                ax.set_title("$p_{AND}$" + " (={:.2e}".format(p) + ")", fontsize=18)
+            else:
+                ax.text(.01, .07, r"$(P_{2}=$" + "{:.4f})".format(p), ha="left", transform=ax.transAxes)
+                ax.set_title("$p_{AND}$" + " (={:.4f}".format(p) + ")", fontsize=18)
         ax.set_xlabel('$x_' + str(x_index) + '$', fontsize=15)
         ax.set_ylabel('$x_' + str(1 - x_index) + '$', fontsize=15)
         return f, ax
@@ -391,6 +398,7 @@ def sampling_cop(cop1, cop2, cond_cop=pyc.Bicop(), n=10000):
     x = np.concatenate((x0.reshape(-1, 1),
                         x1.reshape(-1, 1), x2.reshape(-1, 1)), axis=1)
     return x
+
 
 
 def fit_copula(x, y, family=pyc.BicopFamily.gaussian):
@@ -483,7 +491,7 @@ class Multivariate():
         return f, ax
 
 
-    def bivariate_plot(self, x_index, y_index, myLSF, z:float, xlim=None, ylim=None):
+    def bivariate_plot(self, x_index, y_index, myLSF, z_value:float, xlim=None, ylim=None):
         '''
         Plots the limit state function and the contours of the probability density function in the 2D plane.
 
@@ -507,7 +515,7 @@ class Multivariate():
         if xlim is None:
             xlim = (rv_x.ppf(0.01), rv_x.ppf(0.99))
         x = np.linspace(xlim[0], xlim[1], 1000)
-        cond = np.full(x.shape, z)
+        cond = np.full(x.shape, z_value)
 
         if (x_index+y_index) == 1:
             bivar = self.B1
