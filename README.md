@@ -101,6 +101,8 @@ and parameter3 relate to the conditional copula $$C_{0,2|1}$$.
 Using these arguments, two Bivariate objects are created for $$X_0, X_1$$ and $$X_1, X_2$$. The conditional copula and 
 the two bivariate copulas are then used to sample the copula $$C_{0,2}$$ of $$X_0, X_2$$. 
 
+**Note**: the current version only applies if all the (conditional) copulas are normal. Other special cases (and treatment of the sampling) should be implemented for generalization.
+
 A key method of the Multivariate class is `bivariate_plot` which allows to plot a (limit-state) function and the 
 multivariate joint distribution's contours in a given bivariate plan. `x_index` and `y_index` are the indices of the 
 variables taken for the plot's x and y axes: for instance, `x_index`=1 and `y_index`=0 positions the plot in the plane 
