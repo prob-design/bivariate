@@ -13,6 +13,7 @@ from matplotlib.figure import Figure
 from matplotlib.patches import Rectangle
 from typing import Any, Dict, List, Optional, Sequence, Tuple, Type, TypeVar, Union
 
+
 from bivariate.class_fitresults import FitResults
 
 # Types for documentation
@@ -333,8 +334,8 @@ class Dataset():
                           subplots=not together,
                           sharex=True,
                           figsize=figsize,
-                          marker='o',
-                          ls='none',
+                          #marker='-',       #rrrrrrr, had to get rid of this because of convention used in MUDE
+                          #ls='none',
                           grid=True,
                           markeredgecolor='k',
                           markeredgewidth=0.25,
@@ -383,7 +384,7 @@ class Dataset():
     # Univariate fit
         
 
-    def plot_ecdf(self, **kwargs):
+    def plot_ecdf(self, **kwargs):          #rrrrrrr, maybe it is nice to be able to specify which column
         """Make a plot of the Empirical Cumulative Distribution Function (ECDF)
         of the selected columns.
 

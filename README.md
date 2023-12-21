@@ -111,3 +111,16 @@ in the plane $(x_1, x_0)$, `z_value` allows to set the value of $X_2$ used for t
 
 The same `x_index` and `y_index` system is used in the other plotting methods of the class.
 
+
+### Structure of bivariate package, Siemen
+
+.
+├── github
+├── src\bivariate                  # 
+│   ├── __init__.py                # Documentation files (alternatively `doc`)
+│   ├── class_dataset.py           # Source files (alternatively `lib` or `app`)
+│   ├── class_multivar.py          # Source files (alternatively `lib` or `app`)
+|        |-- class_bivariate.py    
+├── ...                     # Source files (alternatively `lib` or `app`)
+└── README.md
+
