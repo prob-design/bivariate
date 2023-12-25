@@ -141,15 +141,6 @@ class Emperical_data():
         
         return fig, ax
     
-    def ecdf(self):
-        """Compute the empirical cumulative distribution function
-        """
-        x = np.sort(self.data_array)
-        n = x.size
-        y = np.arange(1, n+1) / (n+1)
-        
-        return [x, y]
-    
     def PDF_and_ECDF_plot(self,
                            axes=None,
                            fig=None):
@@ -183,14 +174,15 @@ class Emperical_data():
         axes[0].set_title('PDF', fontsize=18)
         axes[0].legend()
         
-        # Calculate emperical CDF
+        # Create function to compute the empirical cumulative distribution function
+        def ecdf(var):
+            x = np.sort(var) # sort the values from small to large
+            n = x.size # determine the number of datapoints
+            y = np.arange(1, n+1) / (n+1)
+            return [y, x]
         
-        
-        # Plot the empirical cumulative distribution 
-        #rrrrrrrr I don't like these variables names
-        x, y = self.ecdf()
-
-        axes[1].step(x, y, 
+        # Plot the empirical cumulative distribution function
+        axes[1].step(ecdf(self.data_array)[1], ecdf(self.data_array)[0], 
                      label=f'{self.data_title}')
         axes[1].set_xlabel(f'{self.data_units}')
         axes[1].set_ylabel('${P[X \leq x]}$')
@@ -230,13 +222,9 @@ class Emperical_data():
         
         """
         
-        # Fit the emperical data, and store them as variables
         self.params_logn = st.lognorm.fit(self.data_array, floc = 0)
         self.params_gumb = st.gumbel_r.fit(self.data_array)
-        
-        # Create an instance of the scipy.stats.lognorm class with fitted params
-        self.RV_logn = st.lognorm(*self.params_logn)
-        self.RV_gumb = st.gumbel_r(*self.params_gumb)
+
         
         
     def graphical_assessing_goodness_of_fit(self,
@@ -266,21 +254,21 @@ class Emperical_data():
             fig, axes = plt.subplots(figsize=(5, 6))
         
         # Create function to compute the empirical cumulative distribution function
- 
+        def ecdf(var):
+            x = np.sort(var)
+            n = x.size
+            y = np.arange(1, n+1) / (n+1)
+            return [x, y]
         
         ### NEED TO GENERALIZE THIS CODE SUCH THAT IT USES AUGMENTED_RV_CONTINUOUS CLASS 
         ### NEED TO BE ABLE TO EXPAND THIS CODE TO MULTIPLE DISTRIBUTIONS
         
         # Plot the empirical cumulative distribution function
-        x, y = self.ecdf()
-        
-        axes.step(x, y, 
+        axes.step(ecdf(self.data_array)[0], ecdf(self.data_array)[1], 
                   color = 'black', label=f'{self.data_title}')
-                
-        
-        axes.plot(x, self.RV_logn.cdf(x),
+        axes.plot(ecdf(self.data_array)[0], st.lognorm.cdf(ecdf(self.data_array)[0], *self.params_logn),
                     color='cornflowerblue', label='Lognormal')
-        axes.plot(x, self.RV_gumb.cdf(x),
+        axes.plot(ecdf(self.data_array)[0], st.gumbel_r.cdf(ecdf(self.data_array)[0], *self.params_gumb),
                     '--', color = 'grey', label='Gumbel')
         
         
@@ -321,12 +309,16 @@ class Emperical_data():
             fig, axes = plt.subplots(figsize=(5, 6))
         
         
-        x, y = self.ecdf()
+        def ecdf(var):
+            x = np.sort(var)
+            n = x.size
+            y = np.arange(1, n+1) / (n+1)
+            return [y, x]
         
         axes.plot([trunc(min(self.data_array)), ceil(max(self.data_array))], [trunc(min(self.data_array)), ceil(max(self.data_array))], 'k')
-        axes.scatter(y, self.RV_logn.ppf(y),
+        axes.scatter(ecdf(self.data_array)[1], st.lognorm.ppf(ecdf(self.data_array)[0], *self.params_logn), 
                 color='cornflowerblue', label='Lognormal')
-        axes.scatter(y, self.RV_gumb.ppf(y),
+        axes.scatter(ecdf(self.data_array)[1], st.gumbel_r.ppf(ecdf(self.data_array)[0], *self.params_gumb),
                 color='grey', label='Gumbel')
         axes.set_xlabel(f'Observed {self.data_units}')
         axes.set_ylabel(f'Estimated {self.data_units}')
@@ -365,4 +357,27 @@ class Emperical_data():
         
         
 
+class augmented_rv_continuous(st.rv_continuous):
+    """Class for the distribution 
+    
+    This class is based on
+    
+    
+    Examples
+    --------
+    If one has a timeseries in the csv file 'data.csv' 
+    and wants to fit a  distribution to it,
+    one can use the following code:
 
+    >>> emperical_data = np.genfromtxt('data.csv', delimiter=',')
+    >>> fitted_lognormal_params = lognormal_rv.fit(emperical_data)
+    >>> RV_lognormal = lognormal_rv(*fitted_lognormal_params)
+    
+    """
+    def __init__(self,
+                 time_series_data: np.array
+                 type_distribution: str,
+                 ):  
+
+    # Assign input to attributes
+    
