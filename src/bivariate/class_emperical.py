@@ -190,8 +190,7 @@ class Emperical_data():
         #rrrrrrrr I don't like these variables names
         x, y = self.ecdf()
 
-        axes[1].step(x, y, 
-                     label=f'{self.data_title}')
+        axes[1].step(x, y, label=f'{self.data_title}')
         axes[1].set_xlabel(f'{self.data_units}')
         axes[1].set_ylabel('${P[X \leq x]}$')
         axes[1].set_title('CDF', fontsize=18)
@@ -236,6 +235,7 @@ class Emperical_data():
         
         # Create an instance of the scipy.stats.lognorm class with fitted params
         self.RV_logn = st.lognorm(*self.params_logn)
+        # 
         self.RV_gumb = st.gumbel_r(*self.params_gumb)
         
         
@@ -324,9 +324,9 @@ class Emperical_data():
         x, y = self.ecdf()
         
         axes.plot([trunc(min(self.data_array)), ceil(max(self.data_array))], [trunc(min(self.data_array)), ceil(max(self.data_array))], 'k')
-        axes.scatter(y, self.RV_logn.ppf(y),
+        axes.scatter(x, self.RV_logn.ppf(y),
                 color='cornflowerblue', label='Lognormal')
-        axes.scatter(y, self.RV_gumb.ppf(y),
+        axes.scatter(x, self.RV_gumb.ppf(y),
                 color='grey', label='Gumbel')
         axes.set_xlabel(f'Observed {self.data_units}')
         axes.set_ylabel(f'Estimated {self.data_units}')
