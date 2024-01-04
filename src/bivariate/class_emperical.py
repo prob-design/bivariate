@@ -14,7 +14,8 @@ from matplotlib.patches import Rectangle
 from typing import Any, Dict, List, Optional, Sequence, Tuple, Type, TypeVar, Union
 from math import ceil, trunc
 
-# This class is made by Siemen Algra and based of the class of Benjamin Rousse 
+# This class is made by Siemen Algra, based on study material provided by the MUDE teaching team 
+# and a class made by Benjamin Rouse
 
 class Emperical_data():
     
@@ -60,6 +61,7 @@ class Emperical_data():
         self._cov = None
         self._cor = None
         self.statistical_summary = None
+        self.distributions = {}             # Create empty dictionary where the distribution can be stored in 
 
 
     def data_summary(self) -> None:
@@ -143,7 +145,9 @@ class Emperical_data():
     
     def ecdf(self):
         """Compute the empirical cumulative distribution function
+        
         """
+
         x = np.sort(self.data_array)
         n = x.size
         y = np.arange(1, n+1) / (n+1)
@@ -200,11 +204,11 @@ class Emperical_data():
 
         return fig, axes
     
-    def fitting_distributions(self):
+    def fitting_distributions(self, distribution_names: List[str]):
         """Fit distributions to the data
 
         This function uses scipy.stats to fit distributions to the data.
-        The following distributions are fitted:
+        The can be fitted:
         - Normal distribution
         - Lognormal distribution
         - Exponential distribution
@@ -215,29 +219,48 @@ class Emperical_data():
         self : `data_array`
             Numpy array containing time series data. 
             Note that this is already an attribute of the class.
+        name_distribution : `str`
+            Name of the distribution to be fitted.
         
         Returns
         -------
-        norm : `scipy.stats.norm`
-            Normal distribution fitted to the data.
-        lognorm : `scipy.stats.lognorm`
-            Lognormal distribution fitted to the data.
-        expon : `scipy.stats.expon`
-            Exponential distribution fitted to the data.
-        weibull : `scipy.stats.weibull_min`
-            Weibull distribution fitted to the data.
+
         
         """
+        distribution_mapping = {
+            'lognormal': st.lognorm,
+            'gumbel': st.gumbel_r,
+            'exponential': st.expon,
+            'weibull': st.weibull_min,
+            'normal': st.norm,
+            'gamma': st.gamma
+            # Add more distributions as needed
+        }
         
-        # Fit the emperical data, and store them as variables
-        self.params_logn = st.lognorm.fit(self.data_array, floc = 0)
-        self.params_gumb = st.gumbel_r.fit(self.data_array)
         
-        # Create an instance of the scipy.stats.lognorm class with fitted params
-        self.RV_logn = st.lognorm(*self.params_logn)
-        # 
-        self.RV_gumb = st.gumbel_r(*self.params_gumb)
+        # This is necessary because of name convention in other packages
+        distr_scipy_names = {
+            'lognormal': 'lognorm',
+            'gumbel': 'gumbel_r',
+            'exponential': 'expon',
+            'weibull': 'weibul_min',
+            'normal': 'norm',
+            'gamma': 'gamma'
+            # Add more distributions as needed
+        }
         
+        # Loop over provided list of distributions
+        for name in distribution_names:
+            if name not in distribution_mapping:
+                raise ValueError(f"Unsupported distribution: {name}")
+
+
+            distribution_class = distribution_mapping[name]
+            params = distribution_class.fit(self.data_array)
+            rv = distribution_class(*params)
+            self.distributions[name] = {'params': params, 'RV_': rv, 'scipy_name': distr_scipy_names[name]}
+
+ 
         
     def graphical_assessing_goodness_of_fit(self,
                                          axes=None,
@@ -260,30 +283,25 @@ class Emperical_data():
             Axes object containing the plot.        
         
         """
+        # Specify x and y values for the ECDF
+        x, y = self.ecdf()
 
         # Create figure and axes if not provided
         if axes is None:
-            fig, axes = plt.subplots(figsize=(5, 6))
-        
-        # Create function to compute the empirical cumulative distribution function
- 
-        
-        ### NEED TO GENERALIZE THIS CODE SUCH THAT IT USES AUGMENTED_RV_CONTINUOUS CLASS 
-        ### NEED TO BE ABLE TO EXPAND THIS CODE TO MULTIPLE DISTRIBUTIONS
+            fig, axes = plt.subplots(figsize=(5, 6))   
         
         # Plot the empirical cumulative distribution function
-        x, y = self.ecdf()
-        
         axes.step(x, y, 
                   color = 'black', label=f'{self.data_title}')
-                
         
-        axes.plot(x, self.RV_logn.cdf(x),
-                    color='cornflowerblue', label='Lognormal')
-        axes.plot(x, self.RV_gumb.cdf(x),
-                    '--', color = 'grey', label='Gumbel')
-        
-        
+        # Plot all the fitted distributions, if none, prints statement    
+        if not self.distributions:
+            print("No fitted distributions found.")
+        else:
+            for name, distribution in self.distributions.items():
+                axes.plot(x, distribution['RV_'].cdf(x), label=name)
+
+        # Define the labels and text for the plot
         axes.set_xlabel(f'{self.data_units}')
         axes.set_ylabel('${P[X \leq x]}$')
         axes.set_title(f'CDF emperical and fitted of {self.data_title}', fontsize=18)
@@ -321,13 +339,20 @@ class Emperical_data():
             fig, axes = plt.subplots(figsize=(5, 6))
         
         
+        
+        #SSSSSSS Documentation needs to be added
         x, y = self.ecdf()
         
         axes.plot([trunc(min(self.data_array)), ceil(max(self.data_array))], [trunc(min(self.data_array)), ceil(max(self.data_array))], 'k')
-        axes.scatter(x, self.RV_logn.ppf(y),
-                color='cornflowerblue', label='Lognormal')
-        axes.scatter(x, self.RV_gumb.ppf(y),
-                color='grey', label='Gumbel')
+        
+        # Plot the scatter plot for all the fitted distributions, if none, prints statement    
+        if not self.distributions:
+            print("No fitted distributions found.")
+        else:
+            for name, distribution in self.distributions.items():
+                axes.scatter(x, distribution['RV_'].ppf(y), label=name)
+
+        # Define the labels and text for the plot
         axes.set_xlabel(f'Observed {self.data_units}')
         axes.set_ylabel(f'Estimated {self.data_units}')
         axes.set_title(f'QQ-plot of {self.data_title}', fontsize=18)
@@ -356,13 +381,55 @@ class Emperical_data():
             Kolmogorov-Smirnov test for the Gumbel distribution.
         
         """
+        # Create empty dictionary to store results of KS_test in, with name as a key
+        ks_results = {}
         
-        _, self.KS_test_logn = st.kstest(self.data_array, 'lognorm', args=self.params_logn)
-        _, self.KS_test_gumb = st.kstest(self.data_array, 'gumbel_r', args=self.params_gumb)
+        # Loop over all the fitted distributions and perform KS_test
+        for name, distribution in self.distributions.items():
+            _, p_value = st.kstest(self.data_array, distribution['scipy_name'], args=distribution['params'])
+            ks_results[name] = p_value
+            print(f'The Kolmogorov-Smirnov test for the {name} distribution gives a p-value of {np.round(p_value, 3)}')
         
-        print(f'The Kolmogorov-Smirnov test for the lognormal distribution of {self.data_title} gives a p-value of {np.round(self.KS_test_logn,3)}')
-        print(f'The Kolmogorov-Smirnov test for the Gumbel distribution of {self.data_title} gives a p-value of {np.round(self.KS_test_gumb,3)}')
+        return ks_results
         
+    
+    def tabulated_results(self):
+        """Prints the tabulated results of the fitted distributions
         
+
+        Parameters
+        ----------
+        self : `data_array`
+            Numpy array containing time series data. 
+            Note that this is already an attribute of the class.
+
+        Returns
+        -------
+        tabulated_results : `pandas.DataFrame`
+            Pandas dataframe containing the tabulated results of the fitted distributions.
+        
+        """
+        
+        # Define intervals for the assessment
+        intervals = [0.05, 0.25, 0.5, 0.75, 0.95]
+        
+        # Make these interval into something that can be used as column names
+        column_names = [f'{str(i)}' for i in intervals]
+        
+        # Set-up structure dataframe
+        df = pd.DataFrame(columns=column_names)
+        
+        # Add row with emperical data
+        for i, interval in enumerate(intervals):
+            df.loc['Emperical'] = [np.round(np.percentile(self.data_array, interval*100), 3) for interval in intervals]
+
+        # Add rows with fitted distributions
+        for name, distribution in self.distributions.items():
+            df.loc[name] = [np.round(distribution['RV_'].ppf(interval), 3) for interval in intervals]
+            
+            
+        display(df)   
+
+
 
 
