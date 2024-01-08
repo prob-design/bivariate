@@ -56,18 +56,11 @@ class Emperical_data():
         self.data_array = time_series_data
         self.data_title = data_title
         self.data_units = data_units
-        
-        
 
-        # To be computed
-        self.extremes = None
-        self._bivariate_vars = None
-        self._bivar_r_norm = None
-        self._cov = None
-        self._cor = None
+        # Empty attributes
         self.statistical_summary = None
         
-        # Create empty dictionary where the distribution can be stored in 
+        # Create empty dictionary where the distribution dictionaries can be stored in 
         self.distributions = {}             
 
     def data_summary(self) -> None:
@@ -230,7 +223,7 @@ class Emperical_data():
 
         return fig, axes
     
-    def fitting_distributions(self, distribution_names: List[str]):
+    def fitting_distributions(self, distribution_names: List[str], fit_method: str = 'MLE'):
         """Fit distributions to the data
 
         This function uses scipy.stats to fit distributions to the data.
@@ -249,11 +242,36 @@ class Emperical_data():
             Note that this is already an attribute of the class.
         name_distribution : `str`
             Name of the distribution to be fitted.
+        fit_method : `str`
+            Method of fitting the distribution to the data.
+            Options are:
+            - 'MLE' Maximum Likelyhood Estimator
+            - 'MM'  Method of moments
         
         Returns
         -------
 
+
+        Examples
+        --------
+        If timeseries data is already assigned to the class, a variety
+        of distributions can be fitted to the data. 
         
+        This is done for exponential and lognormal by using the following code:
+        >>> object.fitting_distributions(['exponential', 'lognormal'])
+        
+        Any distribution can be accessed by using the following code:
+        >>> object.distributions['name_distribution']
+        
+        Which returns a dictionary containing:
+        - 'params': fitted parameters are stored
+        - 'RV_'   : instance of the rv_continuous_frozen class is stored
+        - 'scipy_name': name used in scipy, done for operations
+        
+        Note that the 'RV_' is a rv_continuous_frozen instance, which can be used
+        to perform operations on the distribution. 
+        Please see the scipy.stats documentation for more information.
+        https://docs.scipy.org/doc/scipy/reference/generated/scipy.stats.rv_continuous.html
         """
         distribution_mapping = {
             'lognormal': st.lognorm,
@@ -290,10 +308,9 @@ class Emperical_data():
             
             
             # Fit the distribution to the emperical data
-            # Methods of fitting: 
-            #  - 'MLE' Maximum Likelyhood Estimator
-            #  - 'MM'  Method of moments
-            params = distribution_class.fit(self.data_array, method = 'MLE')
+            # Different methods can be used
+            params = distribution_class.fit(self.data_array, method = fit_method)
+            
             # Create a 'rv'/rv_continous_frozen instance using
             # the parameters from the above fitted distribution
             rv = distribution_class(*params)
@@ -403,6 +420,10 @@ class Emperical_data():
         if not self.distributions:
             print("No fitted distributions found.")
         else:
+            # Loops over all items (which are also dictionaries) in the {distributions} dictionary
+            # It extracts:
+            #  - name of the speficifc distribution 
+            #  - dictionary containing all information for that specific distribution
             for distribution_name, distribution_dict in self.distributions.items():
                 axes.scatter(x, distribution_dict['RV_'].ppf(y), label=distribution_name)
 
@@ -435,8 +456,6 @@ class Emperical_data():
             Kolmogorov-Smirnov test for the Gumbel distribution.
         
         """
-        # Create empty dictionary to store results of KS_test in, with name as a key
-        ks_results = {}
         
         # Loop over all the fitted distributions and perform KS_test
         if not self.distributions:
@@ -444,10 +463,8 @@ class Emperical_data():
         else:
             for distribution_name, distribution_dict in self.distributions.items():
                 _, p_value = st.kstest(self.data_array, distribution_dict['scipy_name'], args=distribution_dict['params'])
-                ks_results[distribution_name] = p_value
                 print(f'The Kolmogorov-Smirnov test for the {distribution_name} distribution gives a p-value of {np.round(p_value, 3)}')
-        
-        
+
     
     def tabulated_results(self):
         """Prints the tabulated results of the fitted distributions
@@ -490,4 +507,22 @@ class Emperical_data():
 
 
 
+
+    @staticmethod
+    def set_TUDstyle() -> Dict[str, str]:
+        TUcolor = {"cyan":"#00A6D6",
+                   "pink":"#EF60A3",
+                   "green":"#6CC24A",
+                   "yellow":"#FFB81C",
+                   "blue":"#0076C2",
+                   "purple":"#6F1D77",
+                   "lightcyan":"#00B8C8",
+                   "orange":"#EC6842",
+                   "darkgreen":"#009B77",
+                   "darkred":"#A50034",
+                   "red":"#E03C31",
+                   "darkblue":"#0C2340"}
+        plt.rcParams.update({'axes.prop_cycle': plt.cycler(color=TUcolor.values()),
+                             'font.size': 16, "lines.linewidth": 4})
+        return TUcolor
 
