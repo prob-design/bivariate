@@ -32,18 +32,23 @@ class Emperical_data():
         time_series_data : `numpy.array`
             Numpy array containing time series data. This data is used to perform
             emperical statistical analysis on. 
-        data_label : `str`   
+        data_title : `str`   
             This is the label of the data. This is used for plotting purposes.
+        data_units : `str`
+            This is the unit of the data. This is used for plotting purposes.
             
             
         Examples
         --------
-        If one has a timeseries in the csv file 'data.csv' and wants to perform 
+        If one has a timeseries of pressures in the csv file 'data.csv' and wants to perform 
         statistical operations on it, one can use the following code:
 
         >>> data_array = np.genfromtxt('data.csv', delimiter=',')
-        >>> data_label = "Measured data"
-        >>> Emperical_data(data_array, data_label)
+        >>> title = "Pressure measurements Pipe A"
+        >>> units = "Pa"
+        >>> Emperical_data(time_series_data = data_array
+                            , data_title = title
+                            , data_units = units)
         
         """
         
@@ -61,8 +66,9 @@ class Emperical_data():
         self._cov = None
         self._cor = None
         self.statistical_summary = None
-        self.distributions = {}             # Create empty dictionary where the distribution can be stored in 
-
+        
+        # Create empty dictionary where the distribution can be stored in 
+        self.distributions = {}             
 
     def data_summary(self) -> None:
         """Generates statistical summary of inputted data.
@@ -73,9 +79,8 @@ class Emperical_data():
         
         Parameters
         ----------
-        self : `data_array`
-            Numpy array containing time series data. 
-            Note that this is already an attribute of the class.
+        self : object
+            The instance of the class.
         
         Returns
         -------
@@ -118,8 +123,12 @@ class Emperical_data():
 
         Parameters
         ----------
+        self : object
+            The instance of the class.
         ax : `matplotlib.axes.Axes`
             Axes object to plot on. If not provided, a new figure will be created.
+        fig : `matplotlib.figure.Figure`
+            Figure object to plot on. If not provided, a new figure will be created.
 
         Returns
         -------
@@ -134,8 +143,11 @@ class Emperical_data():
         if ax is None:
             fig, ax = plt.subplots(figsize=(10, 6))
 
-
+        # Plot the time series data
         ax.plot(self.data_array, label = f'{self.data_title}')
+        
+        
+        # Plotting configurations
         ax.set_title(f"Time series plot of {self.data_title}")
         ax.set_xlabel(r"$Time$")
         ax.set_ylabel(f"{self.data_units}")
@@ -144,7 +156,19 @@ class Emperical_data():
         return fig, ax
     
     def ecdf(self):
-        """Compute the empirical cumulative distribution function
+        """Computes the empirical cumulative distribution function
+        
+        Parameters
+        ----------
+        self : object
+            The instance of the class.
+            
+        Returns
+        -------
+        x : `numpy.array`	
+            Sorted data   #rrrrr do not like this name
+        y : `numpy.array`
+            Empirical cumulative distribution function.
         
         """
 
@@ -157,10 +181,12 @@ class Emperical_data():
     def PDF_and_ECDF_plot(self,
                            axes=None,
                            fig=None):
-        """Plot the histogram of the data
+        """Plot PDF and ECDF of the time series data
 
         Parameters
         ----------
+        self : object
+            The instance of the class.
         axes : `matplotlib.axes.Axes`
             Axes object to plot on. If not provided, a new figure will be created.
         fig : `matplotlib.figure.Figure`
@@ -208,11 +234,13 @@ class Emperical_data():
         """Fit distributions to the data
 
         This function uses scipy.stats to fit distributions to the data.
-        The can be fitted:
+        All scipy.stats distributions are supported, but exampeles are:
         - Normal distribution
         - Lognormal distribution
         - Exponential distribution
         - Weibull distribution
+        
+        All 
         
         Parameters
         ----------
@@ -254,10 +282,31 @@ class Emperical_data():
             if name not in distribution_mapping:
                 raise ValueError(f"Unsupported distribution: {name}")
 
-
+            # Obtain correct distribution class, this use the name 
+            # provided when creating the instance, and then obtains
+            # the distribution rv_continuous class by using the 
+            # distribution_mapping dictionary
             distribution_class = distribution_mapping[name]
-            params = distribution_class.fit(self.data_array)
+            
+            
+            # Fit the distribution to the emperical data
+            # Methods of fitting: 
+            #  - 'MLE' Maximum Likelyhood Estimator
+            #  - 'MM'  Method of moments
+            params = distribution_class.fit(self.data_array, method = 'MLE')
+            # Create a 'rv'/rv_continous_frozen instance using
+            # the parameters from the above fitted distribution
             rv = distribution_class(*params)
+            
+            
+            # Add the random variable into the {distribtions} dictionary
+            # An example is given for a 'gamma' distribution:
+            # The random variable is stored as a dictionary, in the {distribution} dictionary:
+            #     - self.distributions['gamma']
+            # This dictionary contains:
+            #     - 'params': fitted parameters are stored
+            #     - 'RV_'   : instance of the rv_continuous_frozen class is stored
+            #     - 'scipy_name': name used in scipy, done for operations
             self.distributions[name] = {'params': params, 'RV_': rv, 'scipy_name': distr_scipy_names[name]}
 
  
@@ -293,13 +342,18 @@ class Emperical_data():
         # Plot the empirical cumulative distribution function
         axes.step(x, y, 
                   color = 'black', label=f'{self.data_title}')
-        
-        # Plot all the fitted distributions, if none, prints statement    
+    
+    
+        # Plot the CDF's of all the fitted distributions, if none, prints statement    
         if not self.distributions:
-            print("No fitted distributions found.")
+            print("No fitted distributions defined.")
         else:
-            for name, distribution in self.distributions.items():
-                axes.plot(x, distribution['RV_'].cdf(x), label=name)
+            # Loops over all items (which are also dictionaries) in the {distributions} dictionary
+            # It extracts:
+            #  - name of the speficifc distribution 
+            #  - dictionary containing all information for that specific distribution
+            for distribution_name, distribution_dict in self.distributions.items():
+                axes.plot(x, distribution_dict['RV_'].cdf(x), label=distribution_name)
 
         # Define the labels and text for the plot
         axes.set_xlabel(f'{self.data_units}')
@@ -349,8 +403,8 @@ class Emperical_data():
         if not self.distributions:
             print("No fitted distributions found.")
         else:
-            for name, distribution in self.distributions.items():
-                axes.scatter(x, distribution['RV_'].ppf(y), label=name)
+            for distribution_name, distribution_dict in self.distributions.items():
+                axes.scatter(x, distribution_dict['RV_'].ppf(y), label=distribution_name)
 
         # Define the labels and text for the plot
         axes.set_xlabel(f'Observed {self.data_units}')
@@ -385,12 +439,14 @@ class Emperical_data():
         ks_results = {}
         
         # Loop over all the fitted distributions and perform KS_test
-        for name, distribution in self.distributions.items():
-            _, p_value = st.kstest(self.data_array, distribution['scipy_name'], args=distribution['params'])
-            ks_results[name] = p_value
-            print(f'The Kolmogorov-Smirnov test for the {name} distribution gives a p-value of {np.round(p_value, 3)}')
+        if not self.distributions:
+            print("No fitted distributions found.")
+        else:
+            for distribution_name, distribution_dict in self.distributions.items():
+                _, p_value = st.kstest(self.data_array, distribution_dict['scipy_name'], args=distribution_dict['params'])
+                ks_results[distribution_name] = p_value
+                print(f'The Kolmogorov-Smirnov test for the {distribution_name} distribution gives a p-value of {np.round(p_value, 3)}')
         
-        return ks_results
         
     
     def tabulated_results(self):
@@ -414,7 +470,9 @@ class Emperical_data():
         intervals = [0.05, 0.25, 0.5, 0.75, 0.95]
         
         # Make these interval into something that can be used as column names
-        column_names = [f'{str(i)}' for i in intervals]
+        
+        #rrrrrrrrrrr Is this correct?
+        column_names = [f'F(x) = {str(i)}' for i in intervals]
         
         # Set-up structure dataframe
         df = pd.DataFrame(columns=column_names)

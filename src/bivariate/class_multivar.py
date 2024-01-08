@@ -62,7 +62,7 @@ class Bivariate():
     """
     
     def __init__(self,
-                 random_variables:list,
+                 random_variables_list:list,
                  family="Normal",
                  parameter=0):
         """Attributes of the Bivariate class.
@@ -91,22 +91,22 @@ class Bivariate():
         With a Normal copula with parameter 0.0
         
         One can input:
-        >>> RandomVariables = [scipy.stats.norm(0,1), scipy.stats.norm(0,1)]
-        >>> Family = "Normal"
-        >>> Parameter_x = 0.0
-        >>> Bivariate(RandomVariables, Family, Parameter_x)
+        >>> random_variables_list = [scipy.stats.norm(0,1), scipy.stats.norm(0,1)]
+        >>> family = "Normal"
+        >>> parameter = 0.0
+        >>> Bivariate(random_variables_lists, Family, parameter)
 
         """
         
-        self.rv = RandomVariables
-        self.family = Family
-        if Family == "Normal":
+        self.rv = random_variables_list
+        self.family = family
+        if family == "Normal":
             self.copula = pyc.Bicop(family=pyc.BicopFamily.gaussian,
-                                    parameters=[Parameter_x])
-        elif Family == "Clayton":
+                                    parameters=[parameter])
+        elif family == "Clayton":
             self.copula = pyc.Bicop(family=pyc.BicopFamily.clayton,
-                                    parameters=[Parameter_x])
-        elif Family == "Independent":
+                                    parameters=[parameter])
+        elif family == "Independent":
             self.copula = pyc.Bicop(family=pyc.BicopFamily.indep)
         else:
             raise ValueError(
