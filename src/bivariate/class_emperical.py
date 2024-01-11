@@ -267,6 +267,7 @@ class Emperical_data():
         - 'params': fitted parameters are stored
         - 'RV_'   : instance of the rv_continuous_frozen class is stored
         - 'scipy_name': name used in scipy, done for operations
+        - 'method_of_fitting': method used for fitting the distribution
         
         Note that the 'RV_' is a rv_continuous_frozen instance, which can be used
         to perform operations on the distribution. 
@@ -324,7 +325,8 @@ class Emperical_data():
             #     - 'params': fitted parameters are stored
             #     - 'RV_'   : instance of the rv_continuous_frozen class is stored
             #     - 'scipy_name': name used in scipy, done for operations
-            self.distributions[name] = {'params': params, 'RV_': rv, 'scipy_name': distr_scipy_names[name]}
+            self.distributions[name] = {'params': params, 'RV_': rv, 'scipy_name': distr_scipy_names[name]
+                                        , 'method_of_fitting': fit_method}
 
  
         
@@ -461,9 +463,9 @@ class Emperical_data():
         if not self.distributions:
             print("No fitted distributions found.")
         else:
-            for distribution_name, distribution_dict in self.distributions.items():
+            for distribution_dict_name, distribution_dict in self.distributions.items():
                 _, p_value = st.kstest(self.data_array, distribution_dict['scipy_name'], args=distribution_dict['params'])
-                print(f'The Kolmogorov-Smirnov test for the {distribution_name} distribution gives a p-value of {np.round(p_value, 3)}')
+                print(f'The Kolmogorov-Smirnov test for the {distribution_dict_name} distribution gives a p-value of {np.round(p_value, 3)}')
 
     
     def tabulated_results(self):
