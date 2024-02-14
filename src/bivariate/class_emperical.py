@@ -18,14 +18,24 @@ from math import ceil, trunc
 # and a class made by Benjamin Rouse
 
 class Emperical_data():
-    
-    
+
     def __init__(self,
                  time_series_data: np.array,
                  data_title = None,
                  data_units = None
                  ):
-        """Attributes of the emperical_data class.
+        """This class is used to perform emperical statistical analysis on time series data.
+        It can be used to perform:
+        - statistical analysis
+        - plot time series data
+        - plot PDF and ECDF
+        - fit distributions to the data
+        - validate fitted distributions, using:
+            -> graphical assessment of goodness of fit
+            -> QQ-plot
+            -> Kolmogorov-Smirnov test
+            -> tabulated results of the fitted distributions
+
         
         Parameters
         ----------
@@ -281,7 +291,7 @@ class Emperical_data():
             'weibull': st.weibull_min,
             'normal': st.norm,
             'gamma': st.gamma
-            # Add more distributions as needed
+            # Add more distributions if needed
         }
         
         
@@ -293,7 +303,7 @@ class Emperical_data():
             'weibull': 'weibul_min',
             'normal': 'norm',
             'gamma': 'gamma'
-            # Add more distributions as needed
+            # Add more distributions if needed
         }
         
         # Loop over provided list of distributions
@@ -468,7 +478,8 @@ class Emperical_data():
                 print(f'The Kolmogorov-Smirnov test for the {distribution_dict_name} distribution gives a p-value of {np.round(p_value, 3)}')
 
     
-    def tabulated_results(self):
+    def tabulated_results(self,
+                          intervals = None):
         """Prints the tabulated results of the fitted distributions
         
 
@@ -485,8 +496,9 @@ class Emperical_data():
         
         """
         
-        # Define intervals for the assessment
-        intervals = [0.05, 0.25, 0.5, 0.75, 0.95]
+        # Define intervals for the assessment if they are not specified by the user
+        if intervals is None:    
+            intervals = [0.05, 0.25, 0.5, 0.75, 0.95]
         
         # Make these interval into something that can be used as column names
         
