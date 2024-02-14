@@ -22,70 +22,37 @@ import pyvinecopulib as pyc
 
 class Region_of_interest():
     def __init__(self,
-                 type: str = None,
+                 function,
                  random_samples : np.array = None
                  ):
         """
-        Area_of_interest class for 2 dimensional probabilistic analysis.
+        Region_of_interest class for 2 dimensional probabilistic analysis.
         This class is used to define a Region of interest. 
-        This region can be any arbitrary shape, and is defined by the user.
+        This region can be any arbitrary shape, and is defined by the user using a function.
         
         Random samples are given as input, and the region of interest is defined by the user.
         It is then checked how many of the random samples are within the region of interest.
         
         Parameters
         ----------
-        type : str
-            Type of region of interest.
-            Can be:
-            - 'rectangle'
-            - 'polygon'
-            - 'function'
+        function : function
+            Function that defines the region of interest.
+            The function should return True if the point is inside the region of interest, and False if it is not.
         random_samples : np.array
             Q-Dimensional array of random samples.
             Each row is 1 random sample of the Q-Dimensional distribution
             1st column is X1, 2nd column is X2,...., Qth column = Q.
             
         """
-        self.type = type
+        self.function = function
         self.random_samples = random_samples
-        
-        
-    def define_rectangle(self, x_left_lower, y_left_lower, x_right_upper, y_right_upper):
-        """
-        Define a rectangle region of interest.
-        
-        Parameters
-        ----------
-        x_left_lower : float
-            X-coordinate of the left lower corner of the rectangle.
-        y_left_lower : float
-            Y-coordinate of the left lower corner of the rectangle.
-        x_right_upper : float
-            X-coordinate of the right upper corner of the rectangle.
-        y_right_upper : float
-            Y-coordinate of the right upper corner of the rectangle.
-        
-        """
-        # Create a dictionary to store the rectangle coordinates
-        self.rectangle_dict = {'x_left_lower': None
-                               , 'y_left_lower': None
-                               , 'x_right_upper': None
-                               , 'y_right_upper': None}
-        
-        
-        # Assign rectangle coordinates to dictionary
-        self.rectangle_dict['x_left_lower'] = x_left_lower
-        self.rectangle_dict['y_left_lower'] = y_left_lower
-        self.rectangle_dict['x_right_upper'] = x_right_upper
-        self.rectangle_dict['y_right_upper'] = y_right_upper
- 
     
-    def plot_rectangle(self, 
-                       xy_lim = None,
-                       axes=None,
-                       fig=None):
-        """Plot the rectangle region of interest.
+        
+    def plot_function(self, 
+                      xy_lim = None,
+                      axes=None,
+                      fig=None):
+        """Plot the function region of interest.
 
         Parameters
         ----------
@@ -109,14 +76,12 @@ class Region_of_interest():
         if axes is None:
             fig, ax = plt.subplots(1, 1, figsize=(14, 5))
         
-   
-        # Plot the rectangle
-        rect = plt.Rectangle((self.rectangle_dict['x_left_lower'], self.rectangle_dict['y_left_lower']),
-                                self.rectangle_dict['x_right_upper'] - self.rectangle_dict['x_left_lower'],
-                                self.rectangle_dict['y_right_upper'] - self.rectangle_dict['y_left_lower'],
-                                linewidth=1, edgecolor='r', facecolor='r')
-        ax.add_patch(rect)
-        
+        # Plot the function
+        x = np.linspace(xy_lim[0], xy_lim[1], 100)
+        y = np.linspace(xy_lim[2], xy_lim[3], 100)
+        X, Y = np.meshgrid(x, y)
+        Z = self.function(X, Y)
+        ax.contour(X, Y, Z, levels=[0], linewidths=2, colors='r')
         
         xlim = [xy_lim[0], xy_lim[1]]
         ylim = [xy_lim[2], xy_lim[3]]
@@ -129,21 +94,10 @@ class Region_of_interest():
         ax.set_title("Region of interest", fontsize = 14)
         
         return fig, ax
-        
-    def _is_inside_rectangle(self, x1, x2):
-        
-        # Define coordinates of the bottom-left and top-right corners of the square
-        x_left_lower = self.rectangle_dict['x_left_lower']
-        x_right_upper = self.rectangle_dict['x_right_upper']
-        y_left_lower =  self.rectangle_dict['y_left_lower']
-        y_right_upper = self.rectangle_dict['y_right_upper']
     
-        return x_left_lower <= x1 <= x_right_upper and y_left_lower <= x2 <= y_right_upper
-
-    
-    def inside_rectangle(self):
+    def inside_function(self):
         """
-        Check how many random samples are inside the rectangle.
+        Check how many random samples are inside the function region of interest.
         
         Parameters
         ----------
@@ -154,47 +108,49 @@ class Region_of_interest():
             
         Returns
         -------
-        int
-            Number of random samples inside the rectangle.
+        list
+            list of boolean values, indicating if the random samples are inside the function region of interest.
+            True if the random sample is inside the function region of interest, False if it is not.
         
         """
         
+        # Check how many random samples are inside the function region of interest
+        inside_random_samples = self.function(self.random_samples[:, 0], self.random_samples[:, 1]) <= 0
         
+        # Create a dictionary to store the random samples inside the function region of interest
+        self.function_dict = {'inside_random_samples': None}
         
-        # Check how many random samples are inside the rectangle
-        inside_random_samples = self._is_inside_rectangle(self.random_samples[:, 0], self.random_samples[:, 1]) <= 0
-        
-        # Plot the random samples inside the rectangle
-        # ax.scatter(random_samples[inside_indices, 0], random_samples[inside_indices, 1], color='b', label='inside')
-        
-        self.rectangle_dict['inside_random_samples'] = inside_random_samples
+        # Store the random samples inside the function region of interest in the dictionary
+        self.function_dict['inside_random_samples'] = inside_random_samples
 
-        # Calculate the amount of random samples inside the rectangle
-        amount_inside = len(inside_random_samples)
-        # Calculate the percentage of random samples inside the rectangle
-        percentage_inside = amount_inside / random_samples.shape[0]
+
+        # Calculate the amount of random samples inside the function region of interest
+        # Be aware that these are stored as boolean values, so we need to sum them to get the amount
+        amount_inside = np.sum(inside_random_samples)
+
+        # Calculate the percentage of random samples inside the function region of interest
+        percentage_inside = amount_inside / self.random_samples.shape[0]
+        
+        self.function_percentage_inside = percentage_inside
 
         return amount_inside, percentage_inside
     
-    def plot_inside_rectangle(self,
-                              random_samples=None,
-                              axes=None,
-                              fig=None):
-        """Plot all the random samples, and highlight the ones inside the rectangle.
+    def plot_inside_function(self,
+                             xy_lim = None,
+                             axes=None,
+                             fig=None):
+        """
+        Plot all the random samples, and highlight the ones inside the function region of interest.
         
         Parameters
         ----------
         self : object
             The instance of the class.
-        random_samples : np.array
-            Q-Dimensional array of random samples.
-            Each row is 1 random sample of the Q-Dimensional distribution
-            1st column is X1, 2nd column is X2,...., Qth column = Q.
         axes : `matplotlib.axes.Axes`
             Axes object to plot on. If not provided, a new figure will be created.
         fig : `matplotlib.figure.Figure`
             Figure object to plot on. If not provided, a new figure will be created.
-        
+            
         Returns
         -------
         fig : `matplotlib.figure.Figure`
@@ -204,19 +160,39 @@ class Region_of_interest():
         
         """
         
-        inside_indices = self.rectangle_dict['inside_indices']
+        samples_inside_function = self.function_dict['inside_random_samples']
         
         # Create figure and axes if not provided
         if axes is None:
             fig, axes = plt.subplots(1, 1, figsize=(14, 5))
-            
-        axes.scatter(self.random_samples[:,0], self.random_samples[:,1],alpha=0.5, label='samples')
-        axes.scatter(random_samples[inside_indices, 0], random_samples[inside_indices, 1], color='b', label='inside')
         
+        # Plot the random samples
+        axes.scatter(self.random_samples[:,0], self.random_samples[:,1],alpha=0.5, label='All samples')
+        # Plot the random samples inside the function region of interest
+        axes.scatter(self.random_samples[samples_inside_function, 0], self.random_samples[samples_inside_function, 1], color='pink', label='Samples inside')
+        
+        # Plot the function
+        x = np.linspace(xy_lim[0], xy_lim[1], 100)
+        y = np.linspace(xy_lim[2], xy_lim[3], 100)
+        X, Y = np.meshgrid(x, y)
+        Z = self.function(X, Y)
+        axes.contour(X, Y, Z, levels=[0], linewidths=6, colors='r')
+        
+        
+        # Set the x and y limits of the plot
+        xlim = [xy_lim[0], xy_lim[1]]
+        ylim = [xy_lim[2], xy_lim[3]]
+        
+        axes.set_xlim(xlim)
+        axes.set_ylim(ylim)
         axes.legend()
         axes.set_xlabel(f'X1')
         axes.set_ylabel(f'X2')
-
+        axes.set_title(f"Random samples inside the function region of interest \n {self.function_percentage_inside*100:.2f}% samples inside")
+        axes.set_aspect("equal")
+        axes.grid(True)
+        axes.legend()   
+        
         
         
         
@@ -325,8 +301,13 @@ class Bivariate():
         
         # Plot the random samples
         axes.scatter(self.samples_X1X2[:,0], self.samples_X1X2[:,1], label='samples')
+        axes.set_aspect("equal")
         axes.set_xlabel(f'X1')
         axes.set_ylabel('X2')
+        axes.set_title('Random samples from the copula')
+        axes.legend()
+        axes.grid(True)
+        
         
         
         return fig, axes
