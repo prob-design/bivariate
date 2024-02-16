@@ -286,40 +286,38 @@ class Bivariate():
         return pdf    
     
     def plot_histogram_3D(self):
-    
         import numpy as np
         import matplotlib.pyplot as plt
         from mpl_toolkits.mplot3d import Axes3D
+        # Extract the X1 and X2 coordinates from the samples
+        x1 = self.samples_X1X2[:, 0]
+        x2 = self.samples_X1X2[:, 1]
 
-        # Assuming 'samples' is a 2D array with your random samples (shape: (n_samples, 2))
-        # For example, you might have generated these samples using a copula as discussed earlier
+        # Define the number of bins for each dimension
+        num_bins_x1 = 50
+        num_bins_x2 = 50
 
-        # Define the grid of values
-        x_values = np.linspace(min(self.samples_X1X2[:, 0]), max(self.samples_X1X2[:, 0]), 50)
-        y_values = np.linspace(min(self.samples_X1X2[:, 1]), max(self.samples_X1X2[:, 1]), 50)
-        X, Y = np.meshgrid(x_values, y_values)
+        # Create the 2D histogram
+        hist, x_edges, y_edges = np.histogram2d(x1, x2, bins=(num_bins_x1, num_bins_x2))
 
-        # Count the number of samples in each (X, Y) bin
-        hist, x_edges, y_edges = np.histogram2d(self.samples_X1X2[:, 0], self.samples_X1X2[:, 1], bins=(x_values, y_values))
-        
-        hist = hist.T  # Transpose hist to match the shape of X and Y
+        # Create meshgrid for 3D plotting
+        X, Y = np.meshgrid(x_edges[:-1], y_edges[:-1])
 
-        
-        print(hist)
-
-        # Create a figure and 3D axis
+        # Plot the 3D histogram
         fig = plt.figure()
         ax = fig.add_subplot(111, projection='3d')
-
-        # Plot a 3D histogram
         ax.bar3d(X.flatten(), Y.flatten(), np.zeros_like(X.flatten()), 
-                (x_values[1]-x_values[0]), (y_values[1]-y_values[0]), hist.flatten(), zsort='average')
+                (x_edges[1]-x_edges[0]), (y_edges[1]-y_edges[0]), hist.flatten(), zsort='average')
 
-        ax.set_xlabel('X')
-        ax.set_ylabel('Y')
+        ax.set_xlabel('X1')
+        ax.set_ylabel('X2')
         ax.set_zlabel('Frequency')
-        ax.set_title('3D Histogram of Bivariate Distribution')
+        ax.set_title('2D Histogram of Random Samples')
+        # Set aspect ratio for X and Y axes
+        # ax.set_box_aspect([1, 1, 0.2])  # Adjust the third value (0.8) to change the aspect ratio of the Z axis
 
+        ax.grid(True)
+        
         plt.show()
 
     
