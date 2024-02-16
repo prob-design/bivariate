@@ -13,8 +13,12 @@ from matplotlib.figure import Figure
 from matplotlib.patches import Rectangle
 from typing import Any, Dict, List, Optional, Sequence, Tuple, Type, TypeVar, Union
 from math import ceil, trunc
+import matplotlib.cm as cm
+
+
 
 from mpl_toolkits.mplot3d import axes3d
+from sklearn.neighbors import KernelDensity
 from scipy.optimize import fsolve
 import pyvinecopulib as pyc
 
@@ -46,6 +50,9 @@ class Region_of_interest():
         """
         self.function = function
         self.random_samples = random_samples
+    
+        # Create empty dictionary to store the emperical contour plot values
+        self.emperical_contour = {}
     
         
     def plot_function(self, 
@@ -135,6 +142,97 @@ class Region_of_interest():
 
         return amount_inside, percentage_inside
     
+    def plot_emperical_contours(self,
+                                xy_lim = None,
+                                axes=None,
+                                fig=None,
+                                bandwidth=0.5):
+        """
+        Plot the emperical contours of the random samples using the KernelDensity.
+        
+        Parameters
+        ----------
+        self : object
+            The instance of the class.
+        axes : `matplotlib.axes.Axes`
+            Axes object to plot on. If not provided, a new figure will be created.
+        fig : `matplotlib.figure.Figure`
+            Figure object to plot on. If not provided, a new figure will be created.
+        bandwidth : float
+            Bandwidth of the kernel density estimation.
+            
+            'The bandwidth parameter controls the smoothness of the estimated density function.
+            Higher bandwidth values result in smoother density estimates, 
+            while lower bandwidth values capture more detail but may be more 
+            sensitive to noise in the data.' from ChatGPT
+        
+        Returns
+        -------
+        fig : `matplotlib.figure.Figure`
+            Figure object containing the plot.
+        ax : `matplotlib.axes.Axes`
+            Axes object containing the plot.
+        
+        """
+
+        # Assuming 'samples' is a 2D array with your random samples (shape: (n_samples, 2))
+        # For example, you might have generated these samples using a copula as discussed earlier
+
+        # Extract the X1 and X2 coordinates from the samples
+        x1 = self.random_samples[:, 0]
+        x2 = self.random_samples[:, 1]
+
+        # Define the number of points for the grid
+        num_points = 100
+
+        # Create a grid of points for contour plot
+        X1_values = np.linspace(min(x1), max(x1), num_points)
+        X2_values = np.linspace(min(x2), max(x2), num_points)
+        X, Y = np.meshgrid(X1_values, X2_values)
+        grid = np.vstack([X.flatten(), Y.flatten()]).T
+
+        # Estimate the density using kernel density estimation
+        kde = KernelDensity(bandwidth=bandwidth)  # Adjust the bandwidth as needed
+        kde.fit(self.random_samples)
+
+        # Compute the log-density values on the grid
+        log_density_values = kde.score_samples(grid)
+        density_values = np.exp(log_density_values)
+
+        # Reshape the density values to match the shape of the grid
+        density_values = density_values.reshape(X.shape)
+        
+        # Create a dictionary to store the necessary values for the emperical contour plot
+        self.emperical_contour_dict = {'X1_values': X1_values,
+                                  'X2_values': X2_values,
+                                  'density_values': density_values}      
+        
+        
+        if axes is None:
+            fig, axes = plt.subplots(1, 1, figsize=(14, 5))
+        
+        # Plot the contour plot of the emperical joint density   
+        axes.contour(X, Y, density_values, levels=8, cmap=cm.Blues, alpha=0.8)
+        # Plot the random samples
+        axes.scatter(x1, x2, alpha=0.01, label='Samples', color='gray') 
+        
+        if xy_lim is None:
+            xy_lim = [min(x1), max(x1), min(x2), max(x2)]
+            
+        # Set the x and y limits of the plot
+        axes.set_xlim(xy_lim[0], xy_lim[1])
+        axes.set_ylim(xy_lim[2], xy_lim[3])
+         
+        axes.set_xlabel('X1')
+        axes.set_ylabel('X2')
+        axes.set_title('Emperical Contour Plot of Sampled Data')
+        axes.legend()  
+        axes.grid(True)
+        axes.set_aspect("equal")
+
+        plt.show()
+    
+    
     def plot_inside_function(self,
                              xy_lim = None,
                              axes=None,
@@ -160,25 +258,37 @@ class Region_of_interest():
         
         """
         
+        
         samples_inside_function = self.function_dict['inside_random_samples']
         
         # Create figure and axes if not provided
         if axes is None:
             fig, axes = plt.subplots(1, 1, figsize=(14, 5))
-        
+            
         # Plot the random samples
-        axes.scatter(self.random_samples[:,0], self.random_samples[:,1],alpha=0.5, label='All samples')
+        axes.scatter(self.random_samples[:,0], self.random_samples[:,1],alpha=0.01, 
+                     label='All samples', color = 'gray')
+        
         # Plot the random samples inside the function region of interest
         # Notice that we use the boolean values to select the samples inside the function region of interest
-        axes.scatter(self.random_samples[samples_inside_function, 0], self.random_samples[samples_inside_function, 1], color='pink', label='Samples inside')
+        axes.scatter(self.random_samples[samples_inside_function, 0], self.random_samples[samples_inside_function, 1],
+                     color='red', alpha=0.01, label='Samples inside', zorder=2)
+        
         
         # Plot the function
         x = np.linspace(xy_lim[0], xy_lim[1], 100)
         y = np.linspace(xy_lim[2], xy_lim[3], 100)
         X, Y = np.meshgrid(x, y)
         Z = self.function(X, Y)
-        axes.contour(X, Y, Z, levels=[0], linewidths=6, colors='r')
+        axes.contour(X, Y, Z, levels=[0], linewidths=2.5, colors='black', zorder = 3)
         
+        # If emperical_contour_dict exists, plot the emperical contour plot
+        if 'emperical_contour_dict' in self.__dict__: 
+            X1_values = self.emperical_contour_dict['X1_values']
+            X2_values = self.emperical_contour_dict['X2_values']
+            density_values = self.emperical_contour_dict['density_values']
+            axes.contour(X1_values, X2_values, density_values, levels=8, cmap=cm.Blues, alpha=0.8, zorder = 4)
+ 
         
         # Set the x and y limits of the plot
         xlim = [xy_lim[0], xy_lim[1]]
@@ -186,20 +296,17 @@ class Region_of_interest():
         
         axes.set_xlim(xlim)
         axes.set_ylim(ylim)
+        axes.set_zorder(4)
         axes.legend()
         axes.set_xlabel(f'X1')
         axes.set_ylabel(f'X2')
         axes.set_title(f"Random samples inside the function region of interest \n {self.function_percentage_inside*100:.2f}% samples inside")
         axes.set_aspect("equal")
         axes.grid(True)
-        axes.legend()   
-        
-        
-        
-        
+        axes.legend()  
         
 
-        
+    
 
 class Bivariate():
     def __init__(self, 
@@ -272,23 +379,31 @@ class Bivariate():
         
         return samples_X1X2
     
-    def bivariatePdf(self, x: list[float]) -> float:
+    def bivariatePdf(self, point: list[float]) -> float:
         '''
-        Computes the bivariate probability density function evaluated in x.
+        Computes the bivariate joined probability density function evaluated in X1 and X2.
 
-        x: list. Coordinates at which the bivariate PDF is evaluated.
+        point: list. Coordinates at which the bivariate PDF is evaluated.
         '''
         # Compute the ranks of the coordinates
-        u0 = self.rv_array[0].cdf(x[0])
-        u1 = self.rv_array[1].cdf(x[1])
+        u0 = self.rv_array[0].cdf(point[0])
+        u1 = self.rv_array[1].cdf(point[1])
 
-        pdf = float(self.copulas_array.pdf([[u0, u1]])) * self.rv_array[0].pdf(x[0]) * self.rv_array[1].pdf(x[1])
+        pdf = float(self.copulas_array.pdf([[u0, u1]])) * self.rv_array[0].pdf(point[0]) * self.rv_array[1].pdf(point[1])
         return pdf    
     
-    def plot_histogram_3D(self):
-        import numpy as np
-        import matplotlib.pyplot as plt
-        from mpl_toolkits.mplot3d import Axes3D
+    def plot_histogram_2D(self):
+        """
+        Plot a 2D histogram of the random samples.
+        This is a simple way to visualize the distribution of the random samples.
+        
+        Parameters
+        ----------
+        self : object
+            The instance of the class.
+        
+        
+        """
         # Extract the X1 and X2 coordinates from the samples
         x1 = self.samples_X1X2[:, 0]
         x2 = self.samples_X1X2[:, 1]
@@ -304,18 +419,16 @@ class Bivariate():
         X, Y = np.meshgrid(x_edges[:-1], y_edges[:-1])
 
         # Plot the 3D histogram
-        fig = plt.figure()
+        fig = plt.figure(figsize=(12, 8))
         ax = fig.add_subplot(111, projection='3d')
         ax.bar3d(X.flatten(), Y.flatten(), np.zeros_like(X.flatten()), 
-                (x_edges[1]-x_edges[0]), (y_edges[1]-y_edges[0]), hist.flatten(), zsort='average')
+                (x_edges[1]-x_edges[0]), (y_edges[1]-y_edges[0]), hist.flatten()
+                , zsort='average', color='blue')
 
         ax.set_xlabel('X1')
         ax.set_ylabel('X2')
-        ax.set_zlabel('Frequency')
+        ax.set_zlabel('Frequency', labelpad=0.5)
         ax.set_title('2D Histogram of Random Samples')
-        # Set aspect ratio for X and Y axes
-        # ax.set_box_aspect([1, 1, 0.2])  # Adjust the third value (0.8) to change the aspect ratio of the Z axis
-
         ax.grid(True)
         
         plt.show()
@@ -347,9 +460,7 @@ class Bivariate():
             fig, axes = plt.subplots(1, 1, figsize=(14, 5))
 
 
-        # Define everything needed for the contour plot
-        
-        # Define the grid of values
+        # Define everything needed for the THEORETICAL contour plot
         X1_values = np.linspace(min(self.samples_X1X2[:,0]), max(self.samples_X1X2[:,0]), 100)  # Adjust the range as needed
         X2_values = np.linspace(min(self.samples_X1X2[:,1]), max(self.samples_X1X2[:,1]), 100)  # Adjust the range as needed
         X, Y = np.meshgrid(X1_values, X2_values)
@@ -359,15 +470,18 @@ class Bivariate():
         pdf_values = np.array([self.bivariatePdf([x, y]) for x, y in grid])
         pdf_values = pdf_values.reshape(X.shape)
         
+        # Plot the contour plot of the joint PDF
+        axes.contour(X, Y, pdf_values, levels = 8, cmap=cm.Blues,
+                     alpha=0.8)#, label = 'Theoratical contour lines')
         
         # Plot the random samples
-        axes.scatter(self.samples_X1X2[:,0], self.samples_X1X2[:,1], label='samples')
-        # Plot the contour plot of the joint PDF
-        axes.contour(X, Y, pdf_values, colors='r', alpha=0.5, linestyles='dashed')#, label='Estimated Joint PDF')
+        axes.scatter(self.samples_X1X2[:,0], self.samples_X1X2[:,1],
+                     alpha = 0.01, label='samples', color = 'gray')
+
         axes.set_aspect("equal")
         axes.set_xlabel(f'X1')
         axes.set_ylabel('X2')
-        axes.set_title('Random samples from the copula')
+        axes.set_title('Random samples from the copula \n and the theoretical contour plot')
         axes.legend()
         axes.grid(True)
         
@@ -468,19 +582,17 @@ class Multivariate():
         
         """
         
-        from mpl_toolkits.mplot3d import Axes3D
-
         # Extract the x, y, and z coordinates from the array
         x = self.random_samples[:, 0]
         y = self.random_samples[:, 1]
         z = self.random_samples[:, 2]
 
         # Create a 3D plot
-        fig = plt.figure()
+        fig = plt.figure(figsize=(12, 8))
         ax = fig.add_subplot(111, projection='3d')
 
         # Plot the points as scatter plot
-        ax.scatter(x, y, z, c='b', marker='o')
+        ax.scatter(x, y, z, alpha=0.2)
 
         # Set labels for the x, y, and z axes
         ax.set_xlim(xyz_lim[0], xyz_lim[1])
@@ -495,9 +607,7 @@ class Multivariate():
         ax.legend()
 
         
-import numpy as np
-import matplotlib.pyplot as plt
-from mpl_toolkits.mplot3d import Axes3D
+
 class Region_of_interest_3D():
     def __init__(self,
                  function,
@@ -561,13 +671,6 @@ class Region_of_interest_3D():
         
         # Calculate the percentage of random samples inside the function region of interest
         percentage_inside = amount_inside / self.random_samples.shape[0]        
-        
-        print(f'total_random_samples: {self.random_samples.shape[0]}')
-        print(f'amout_inside: {amount_inside}')
-        print(f'percentage_inside: {percentage_inside}')
-
-
-        
 
         self.function_percentage_inside = percentage_inside
 
@@ -603,12 +706,13 @@ class Region_of_interest_3D():
             ax = fig.add_subplot(111, projection='3d')
         
         # Plot the random samples
-        ax.scatter(self.random_samples[:,0], self.random_samples[:,1], self.random_samples[:,2], alpha=0.25, label='All samples')
+        ax.scatter(self.random_samples[:,0], self.random_samples[:,1], self.random_samples[:,2],
+                   alpha=0.2, label='All samples')
         # Plot the random samples inside the function region of interest
         ax.scatter(self.random_samples[samples_inside_function, 0], 
                    self.random_samples[samples_inside_function, 1], 
                    self.random_samples[samples_inside_function, 2], 
-                   color='red', label='Samples inside', alpha=1)
+                   color='red', label='Samples inside', alpha=0.2)
         
         # # Plot the function
         # x = np.linspace(xyz_lim[0], xyz_lim[1], 100)
@@ -629,4 +733,23 @@ class Region_of_interest_3D():
         ax.set_title(f'Random samples inside the function region of interest \n {self.function_percentage_inside*100:.2f}% samples inside')
         ax.grid(True)
         ax.legend()
+        
+        
+    @staticmethod
+    def set_Colorstyle() -> Dict[str, str]:
+        TUcolor = {"cyan":"#00A6D6",
+                   "pink":"#EF60A3",
+                   "green":"#6CC24A",
+                   "yellow":"#FFB81C",
+                   "blue":"#0076C2",
+                   "purple":"#6F1D77",
+                   "lightcyan":"#00B8C8",
+                   "orange":"#EC6842",
+                   "darkgreen":"#009B77",
+                   "darkred":"#A50034",
+                   "red":"#E03C31",
+                   "darkblue":"#0C2340"}
+        plt.rcParams.update({'axes.prop_cycle': plt.cycler(color=TUcolor.values()),
+                             'font.size': 16, "lines.linewidth": 4})
+        return TUcolor
         
