@@ -115,7 +115,7 @@ class Region_of_interest():
         """
         
         # Check how many random samples are inside the function region of interest
-        inside_random_samples = self.function(self.random_samples[:, 0], self.random_samples[:, 1]) <= 0
+        inside_random_samples = self.function(self.random_samples[:, 0], self.random_samples[:, 1]) 
         
         # Create a dictionary to store the random samples inside the function region of interest
         self.function_dict = {'inside_random_samples': None}
@@ -272,7 +272,56 @@ class Bivariate():
         
         return samples_X1X2
     
+    def bivariatePdf(self, x: list[float]) -> float:
+        '''
+        Computes the bivariate probability density function evaluated in x.
+
+        x: list. Coordinates at which the bivariate PDF is evaluated.
+        '''
+        # Compute the ranks of the coordinates
+        u0 = self.rv_array[0].cdf(x[0])
+        u1 = self.rv_array[1].cdf(x[1])
+
+        pdf = float(self.copulas_array.pdf([[u0, u1]])) * self.rv_array[0].pdf(x[0]) * self.rv_array[1].pdf(x[1])
+        return pdf    
+    
+    def plot_histogram_3D(self):
+    
+        import numpy as np
+        import matplotlib.pyplot as plt
+        from mpl_toolkits.mplot3d import Axes3D
+
+        # Assuming 'samples' is a 2D array with your random samples (shape: (n_samples, 2))
+        # For example, you might have generated these samples using a copula as discussed earlier
+
+        # Define the grid of values
+        x_values = np.linspace(min(self.samples_X1X2[:, 0]), max(self.samples_X1X2[:, 0]), 50)
+        y_values = np.linspace(min(self.samples_X1X2[:, 1]), max(self.samples_X1X2[:, 1]), 50)
+        X, Y = np.meshgrid(x_values, y_values)
+
+        # Count the number of samples in each (X, Y) bin
+        hist, x_edges, y_edges = np.histogram2d(self.samples_X1X2[:, 0], self.samples_X1X2[:, 1], bins=(x_values, y_values))
         
+        hist = hist.T  # Transpose hist to match the shape of X and Y
+
+        
+        print(hist)
+
+        # Create a figure and 3D axis
+        fig = plt.figure()
+        ax = fig.add_subplot(111, projection='3d')
+
+        # Plot a 3D histogram
+        ax.bar3d(X.flatten(), Y.flatten(), np.zeros_like(X.flatten()), 
+                (x_values[1]-x_values[0]), (y_values[1]-y_values[0]), hist.flatten(), zsort='average')
+
+        ax.set_xlabel('X')
+        ax.set_ylabel('Y')
+        ax.set_zlabel('Frequency')
+        ax.set_title('3D Histogram of Bivariate Distribution')
+
+        plt.show()
+
     
     def plot_random_samples(self, axes=None, fig=None):
         """Plot random samples from the copula.
@@ -299,15 +348,32 @@ class Bivariate():
         if axes is None:
             fig, axes = plt.subplots(1, 1, figsize=(14, 5))
 
+
+        # Define everything needed for the contour plot
+        
+        # Define the grid of values
+        X1_values = np.linspace(min(self.samples_X1X2[:,0]), max(self.samples_X1X2[:,0]), 100)  # Adjust the range as needed
+        X2_values = np.linspace(min(self.samples_X1X2[:,1]), max(self.samples_X1X2[:,1]), 100)  # Adjust the range as needed
+        X, Y = np.meshgrid(X1_values, X2_values)
+        grid = np.vstack([X.flatten(), Y.flatten()]).T
+
+        # Compute the PDF values on the grid
+        pdf_values = np.array([self.bivariatePdf([x, y]) for x, y in grid])
+        pdf_values = pdf_values.reshape(X.shape)
+        
         
         # Plot the random samples
         axes.scatter(self.samples_X1X2[:,0], self.samples_X1X2[:,1], label='samples')
+        # Plot the contour plot of the joint PDF
+        axes.contour(X, Y, pdf_values, colors='r', alpha=0.5, linestyles='dashed')#, label='Estimated Joint PDF')
         axes.set_aspect("equal")
         axes.set_xlabel(f'X1')
         axes.set_ylabel('X2')
         axes.set_title('Random samples from the copula')
         axes.legend()
         axes.grid(True)
+        
+        plt.show()
         
         
         
@@ -482,7 +548,7 @@ class Region_of_interest_3D():
         """
         
         # Check how many random samples are inside the function region of interest
-        inside_random_samples = self.function(self.random_samples[:, 0], self.random_samples[:, 1], self.random_samples[:, 2]) <= 0
+        inside_random_samples = self.function(self.random_samples[:, 0], self.random_samples[:, 1], self.random_samples[:, 2])
         
         # Create a dictionary to store the random samples inside the function region of interest
         self.function_dict = {'inside_random_samples': None}
