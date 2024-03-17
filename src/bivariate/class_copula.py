@@ -142,7 +142,7 @@ class Region_of_interest():
 
         return amount_inside, percentage_inside
     
-    def plot_emperical_contours(self,
+    # def plot_emperical_contours(self,
                                 xy_lim = None,
                                 axes=None,
                                 fig=None,
