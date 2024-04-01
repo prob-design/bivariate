@@ -6,6 +6,7 @@ import pandas as pd
 import scipy.stats as st
 import seaborn as sns
 
+
 from datetime import datetime
 from IPython.display import display
 from matplotlib.axes import Axes
@@ -13,20 +14,19 @@ from matplotlib.figure import Figure
 from matplotlib.patches import Rectangle
 from typing import Any, Dict, List, Optional, Sequence, Tuple, Type, TypeVar, Union
 from math import ceil, trunc
-import matplotlib.cm as cm
-
 
 
 from mpl_toolkits.mplot3d import axes3d
 from sklearn.neighbors import KernelDensity
 from scipy.optimize import fsolve
 import pyvinecopulib as pyc
+from matplotlib import cm
 
 # This class is made by Siemen Algra, based on study material provided by the MUDE teaching team and Benjamin Rouse
 
 class Region_of_interest():
     def __init__(self,
-                 function,
+                 function = None,
                  random_samples : np.array = None
                  ):
         """
@@ -142,7 +142,7 @@ class Region_of_interest():
 
         return amount_inside, percentage_inside
     
-    # def plot_emperical_contours(self,
+    def plot_emperical_contours(self,
                                 xy_lim = None,
                                 axes=None,
                                 fig=None,
@@ -179,15 +179,17 @@ class Region_of_interest():
         # For example, you might have generated these samples using a copula as discussed earlier
 
         # Extract the X1 and X2 coordinates from the samples
-        x1 = self.random_samples[:, 0]
-        x2 = self.random_samples[:, 1]
+        # x1 = self.random_samples[:, 0]
+        # x2 = self.random_samples[:, 1]
 
         # Define the number of points for the grid
         num_points = 100
 
         # Create a grid of points for contour plot
-        X1_values = np.linspace(min(x1), max(x1), num_points)
-        X2_values = np.linspace(min(x2), max(x2), num_points)
+        X1_values = np.linspace(min(self.random_samples[:, 0]), 
+                                max(self.random_samples[:, 0]), num_points)
+        X2_values = np.linspace(min(self.random_samples[:, 1]),
+                                max(self.random_samples[:, 1]), num_points)
         X, Y = np.meshgrid(X1_values, X2_values)
         grid = np.vstack([X.flatten(), Y.flatten()]).T
 
@@ -211,17 +213,26 @@ class Region_of_interest():
         if axes is None:
             fig, axes = plt.subplots(1, 1, figsize=(14, 5))
         
-        # Plot the contour plot of the emperical joint density   
-        axes.contour(X, Y, density_values, levels=8, cmap=cm.Blues, alpha=0.8)
-        # Plot the random samples
-        axes.scatter(x1, x2, alpha=0.01, label='Samples', color='gray') 
-        
+            
         if xy_lim is None:
-            xy_lim = [min(x1), max(x1), min(x2), max(x2)]
+            xy_lim = [np.min(self.random_samples), np.max(self.random_samples), 
+                      np.min(self.random_samples), np.max(self.random_samples)]
             
         # Set the x and y limits of the plot
         axes.set_xlim(xy_lim[0], xy_lim[1])
         axes.set_ylim(xy_lim[2], xy_lim[3])
+        
+        # Plot the random samples
+        axes.scatter(self.random_samples[:, 0], self.random_samples[:, 1], alpha=0.05, label='Samples', color='gray') 
+        
+        # Plot the contour plot of the emperical joint density   
+        axes.contour(self.emperical_contour_dict['X1_values'], 
+                     self.emperical_contour_dict['X2_values'], 
+                     self.emperical_contour_dict['density_values']
+                     , levels=8, cmap=cm.Blues, alpha=0.8, zorder=4)
+
+        
+
          
         axes.set_xlabel('X1')
         axes.set_ylabel('X2')
@@ -266,36 +277,38 @@ class Region_of_interest():
             fig, axes = plt.subplots(1, 1, figsize=(14, 5))
             
         # Plot the random samples
-        axes.scatter(self.random_samples[:,0], self.random_samples[:,1],alpha=0.01, 
+        axes.scatter(self.random_samples[:,0], self.random_samples[:,1],alpha=0.05, 
                      label='All samples', color = 'gray')
         
         # Plot the random samples inside the function region of interest
         # Notice that we use the boolean values to select the samples inside the function region of interest
         axes.scatter(self.random_samples[samples_inside_function, 0], self.random_samples[samples_inside_function, 1],
-                     color='red', alpha=0.01, label='Samples inside', zorder=2)
+                     color='red', alpha=0.05, label='Samples inside', zorder=2)
         
-        
+
+
+
+        # Something is going wrong with this.
+        axes.contour(self.emperical_contour_dict['X1_values'], 
+                     self.emperical_contour_dict['X2_values'], 
+                     self.emperical_contour_dict['density_values']
+                     , levels=8, cmap=cm.Blues, alpha=0.8, zorder=4)
+
+        if xy_lim is None:
+            xy_lim = [np.min(self.random_samples), np.max(self.random_samples), 
+                      np.min(self.random_samples), np.max(self.random_samples)]
+
         # Plot the function
         x = np.linspace(xy_lim[0], xy_lim[1], 100)
         y = np.linspace(xy_lim[2], xy_lim[3], 100)
         X, Y = np.meshgrid(x, y)
-        Z = self.function(X, Y)
-        axes.contour(X, Y, Z, levels=[0], linewidths=2.5, colors='black', zorder = 3)
-        
-        # If emperical_contour_dict exists, plot the emperical contour plot
-        if 'emperical_contour_dict' in self.__dict__: 
-            X1_values = self.emperical_contour_dict['X1_values']
-            X2_values = self.emperical_contour_dict['X2_values']
-            density_values = self.emperical_contour_dict['density_values']
-            axes.contour(X1_values, X2_values, density_values, levels=8, cmap=cm.Blues, alpha=0.8, zorder = 4)
- 
-        
+        axes.contour(X, Y, self.function(X, Y), levels=[0], linewidths=2, colors='black')
+
+            
         # Set the x and y limits of the plot
-        xlim = [xy_lim[0], xy_lim[1]]
-        ylim = [xy_lim[2], xy_lim[3]]
+        axes.set_xlim(xy_lim[0], xy_lim[1])
+        axes.set_ylim(xy_lim[2], xy_lim[3])
         
-        axes.set_xlim(xlim)
-        axes.set_ylim(ylim)
         axes.set_zorder(4)
         axes.legend()
         axes.set_xlabel(f'X1')
@@ -735,8 +748,8 @@ class Region_of_interest_3D():
         ax.legend()
         
         
-    @staticmethod
-    def set_Colorstyle() -> Dict[str, str]:
+@staticmethod
+def set_Colorstyle() -> Dict[str, str]:
         TUcolor = {"cyan":"#00A6D6",
                    "pink":"#EF60A3",
                    "green":"#6CC24A",
