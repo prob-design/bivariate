@@ -7,7 +7,7 @@ Contributors:
 - 2023: Benjamin Ramousse
 - 2024: Siemen Algra, Max Guichard
 
-**License:** _still working out the details, but it will eventually have a permissive license along the lines of CC BY 4.0. Stay tuned..._
+**License:** _still working out the details, but it will eventually have a permissive license along the lines of GPL 3.0 or CC BY 4.0. Stay tuned..._
 
 ## Guidelines - 06/10/2023 (written by Benjamin Ramousse)
 
