@@ -14,6 +14,8 @@ class LimitStateFunction():
     def __init__(self):
         pass
 
+ # ---------------------------------------------- Why is this class here? --------------------------------------------- #
+
 
 # See how the methods below are affected by the creation of the LimitStateFunction class
 # Robustness of fsolve: some start values lead to converge at wrong values (e.g. start=0 and quadratic functions)
@@ -49,21 +51,54 @@ def calculate_root_LSF(myLSF, i: int, values: list[float],
     raise Exception(
         'An exception has occurred. Please reiterate with a different value of start.'
     )
+# --------------------------------- Do we really need the limit state function here? --------------------------------- #
+
 
 
 class Bivariate():
+    """Bivariate class for bivariate probabilistic analyses.
+    
+    Designed for the course: MUDE and Probabilistic Design, Civil Engineering, TU Delft.
+    """
+    
     def __init__(self,
-                 rv: list,
-                 family,
+                 random_variables_list:list,
+                 family="Normal",
                  parameter=0):
-        '''
-        Define a Bivariate object with three attributes:
+        """Attributes of the Bivariate class.
 
-        rv: list[scipy.stats.distributions.rv_frozen]. Contains the two random variables of the object.
-        family: string. Defines the type of bivariate copula of the elements of rv.
-        parameter: float. Parameter of the bivariate copula family. Optional for the independent copula.
-        '''
-        self.rv = rv
+        Parameters
+        ----------
+        RandomVariables : `list` of `objects`: scipy.stats.distributions.
+            List of Random Variables
+            Random Variables defined as object with scipy.stats.distributions.
+        Family : `str`   
+            Types of supported bivariate copula:
+            - Normal
+            - Clayton
+            - Independent
+            - Can be extended to other copulas
+        Parameter_X : `float`     #rrrrrrrr What is this parameter? 
+            Description of `param3`.
+            
+        Examples
+        --------
+        If one wants to create a bivariate distributions of:
+
+        .. math::
+            RV_x1 ~ N(0,1)
+            RV_x2 ~ N(0,1)
+        With a Normal copula with parameter 0.0
+        
+        One can input:
+        >>> random_variables_list = [scipy.stats.norm(0,1), scipy.stats.norm(0,1)]
+        >>> family = "Normal"
+        >>> parameter = 0.0
+        >>> Bivariate(random_variables_lists, Family, parameter)
+
+        """
+        
+        self.rv = random_variables_list
         self.family = family
         if family == "Normal":
             self.copula = pyc.Bicop(family=pyc.BicopFamily.gaussian,
@@ -80,17 +115,17 @@ class Bivariate():
 
     def getMarginal(self, i: int) -> scipy.stats.distributions.rv_frozen:
         '''
-        Returns the marginal distribution of variable X_i.
-
-        i: int. Index of the marginal distribution returned (0 or 1).
+        Returns the marginal distribution of variable X_i.                 
+        i: int. Index of the marginal distribution returned (0 or 1).       
         '''
         try:
             return self.rv[i]
         except IndexError:
             raise ValueError(
-                'Index i out of range. Please select i=0 or i=1.'
+                'Index i out of range. Please select i=0 or i=1.'           
             )
 
+    #rrrrrrr, I don't like this name, drawing, call it plotting?
     def drawMarginalPdf(self, i: int):
         '''
         Plot of the marginal probability density function (pdf) of variable X_i.
@@ -111,6 +146,9 @@ class Bivariate():
         ax.set_ylabel(r"f($x_" + str(i) + ")$")
         return f, ax
 
+
+
+    #rrrrrrr, I don't like this name, drawing, call it plotting?
     def drawMarginalCdf(self, i: int):
         '''
         Plot of the marginal cumulative density function (cdf) of variable X_i.
@@ -206,6 +244,7 @@ class Bivariate():
         # ax.set_aspect('equal')    # ensures scales of both axis are the same (interpretation of the contours shapes)
         ax.set_xlabel('$x_' + str(x_index) + '$', fontsize=15)
         ax.set_ylabel('$x_' + str(1 - x_index) + '$', fontsize=15)
+        
         return f, ax
 
 
@@ -253,6 +292,9 @@ class Bivariate():
 
         return f, ax
 
+
+    #rrrrrrrr, don't like this name
+    # See https://mude.citg.tudelft.nl/book/programming/golden_rules.html, section 2.8.1 and see how this name and the bad example name are the same
     def p_and(self, x: float, y: float):
         """ Computes the probability P(X>x,Y>y). """
         u = self.rv[0].cdf(x)
@@ -260,6 +302,8 @@ class Bivariate():
         c = self.bivariateCdf([x, y])
         return 1 - u - v + c
 
+
+    #rrrrrrrr, don't like this name
     def plot_and(self, x, y, x_index=0, ax=None, contour=False, xlim=None, ylim=None, compare=False):
         """ Computes the probability P(X>x,Y>y) and draws the related figure. """
         rv_x = self.rv[x_index]
@@ -490,7 +534,7 @@ class Multivariate():
         ax.set_title(fr'Cumulative density function of $X_{{{i}}}$', fontsize=18)
         return f, ax
 
-
+# ------------------------------------------ Is this not about multivariate?, see name function below ----------------------------------------- #
     def bivariate_plot(self, x_index, y_index, myLSF, z_value:float, xlim=None, ylim=None):
         '''
         Plots the limit state function and the contours of the probability density function in the 2D plane.
