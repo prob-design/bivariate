@@ -22,7 +22,7 @@ jobs:
           pip install -r requirements.txt
       - name: Install bivariate
         run: |
-          pip install bivariate
+          pip install .
       - name: Test with pytest
         run: |
           pip install pytest pytest-cov
