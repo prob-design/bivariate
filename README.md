@@ -62,13 +62,13 @@ The same `x_index` and `y_index` system is used in the other plotting methods of
 
 ### Structure of bivariate package, Siemen
 
-.
+```
 ├── github
-├── src\bivariate                  # 
-│   ├── __init__.py                # Documentation files (alternatively `doc`)
-│   ├── class_dataset.py           # Source files (alternatively `lib` or `app`)
-│   ├── class_multivar.py          # Source files (alternatively `lib` or `app`)
-|        |-- class_bivariate.py    
-├── ...                     # Source files (alternatively `lib` or `app`)
-└── README.md
-
+│   └── ... # Github workflows                
+├── src\bivariate                  
+│   └── ... # All package source files   
+├── tests
+│   └── ... # All testing files        
+├── ...                     
+└── README.md 
+```

@@ -1,5 +1,5 @@
 [build-system]
-requires = ["setuptools>=42.0", "wheel"]
+requires = ["setuptools>=61.0"]
 build-backend = "setuptools.build_meta"
 
 
@@ -12,8 +12,7 @@ authors = [
   {email = "r.lanzafame@tudelft.nl"},
   {name = "Robert Lanzafame"}
 ]
-
-# packages=find_packages(exclude=['old_package*']),
+readme = "README.md"
 
 dependencies = [
     'numpy',
