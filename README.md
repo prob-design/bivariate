@@ -7,7 +7,22 @@ Contributors:
 - 2023: Benjamin Ramousse
 - 2024: Siemen Algra, Max Guichard
 
+Version history:
+- v0.0: never published, originally stored on TU Delft GitLab, only used with students in class
+- v1.0: never published, moved to GitHub, only used with students in class (Q4, Q1 2023) and for book figures
+- v2.0: first release on PyPI for use with students. Wait for v3.0 for better organization and documentation, and for something that begins to approach stability
+
 **License:** _still working out the details, but it will eventually have a permissive license along the lines of GPL 3.0 or CC BY 4.0. Stay tuned..._
+
+## Installation instructions
+
+Using Python virtual environment:
+
+```
+PATH_TO_YOUR/python -m venv .venv
+source .venv/Scripts/activate
+python -m pip install -r requirements.txt
+```
 
 ## Guidelines - 06/10/2023 (written by Benjamin Ramousse)
 
