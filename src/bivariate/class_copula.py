@@ -223,7 +223,7 @@ class Region_of_interest():
         axes.set_ylim(xy_lim[2], xy_lim[3])
         
         # Plot the random samples
-        axes.scatter(self.random_samples[:, 0], self.random_samples[:, 1], alpha=0.05, label='Samples', color='gray') 
+        axes.scatter(self.random_samples[:, 0], self.random_samples[:, 1], alpha=0.2, label='Samples', color='gray') 
         
         # Plot the contour plot of the emperical joint density   
         axes.contour(self.emperical_contour_dict['X1_values'], 
@@ -277,7 +277,7 @@ class Region_of_interest():
             fig, axes = plt.subplots(1, 1, figsize=(14, 5))
             
         # Plot the random samples
-        axes.scatter(self.random_samples[:,0], self.random_samples[:,1],alpha=0.05, 
+        axes.scatter(self.random_samples[:,0], self.random_samples[:,1],alpha=0.2, 
                      label='All samples', color = 'gray')
         
         # Plot the random samples inside the function region of interest
@@ -689,7 +689,7 @@ class Region_of_interest_3D():
 
         return amount_inside, percentage_inside
     
-    def plot_inside_function_3d(self, xyz_lim=None, axes=None, fig=None):
+    def plot_inside_function_3d(self,labels = None, xyz_lim=None, axes=None, fig=None):
         """
         Plot all the random samples, and highlight the ones inside the function region of interest.
         
@@ -734,15 +734,25 @@ class Region_of_interest_3D():
         # X, Y, Z = np.meshgrid(x, y, z)
         # Z_function = self.function(X, Y, Z)
         # ax.contour3D(X, Y, Z, levels=Z_function.flatten(), cmap='viridis')
+
+        # if xyz_lim is None:
+        #     xyz_lim = [np.min(self.random_samples), np.max(self.random_samples), 
+        #               np.min(self.random_samples), np.max(self.random_samples),
+        #               np.min(self.random_samples), np.max(self.random_samples)]
         
-        # Set the x and y limits of the plot
-        ax.set_xlim(xyz_lim[0], xyz_lim[1])
-        ax.set_ylim(xyz_lim[2], xyz_lim[3])
-        ax.set_zlim(xyz_lim[4], xyz_lim[5])
-        ax.set_xlabel('X1')
-        ax.set_ylabel('X2')
-        ax.set_zlabel('X3')
-        ax.set_box_aspect([1, 1, 1])
+        # # Set the x and y limits of the plot
+        # ax.set_xlim(xyz_lim[0], xyz_lim[1])
+        # ax.set_ylim(xyz_lim[2], xyz_lim[3])
+        # ax.set_zlim(xyz_lim[4], xyz_lim[5])
+        if labels is not None:
+            ax.set_xlabel(labels[0])
+            ax.set_ylabel(labels[1])
+            ax.set_zlabel(labels[2])
+        else:
+            ax.set_xlabel('X1')
+            ax.set_ylabel('X2')
+            ax.set_zlabel('X3')
+        # ax.set_box_aspect([1, 1, 1])
         ax.set_title(f'Random samples inside the function region of interest \n {self.function_percentage_inside*100:.2f}% samples inside')
         ax.grid(True)
         ax.legend()
