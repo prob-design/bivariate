@@ -22,6 +22,7 @@ dependencies = [
     'scipy',
     'ipykernel',
     'pyvinecopulib',
+    'scikit-learn'
 ]
 
 [project.urls]
