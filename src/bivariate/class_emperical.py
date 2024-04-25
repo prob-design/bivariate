@@ -20,7 +20,7 @@ from math import ceil, trunc
 class Emperical_data():
 
     def __init__(self,
-                 time_series_data: np.array,
+                 time_series_data= None,
                  data_title = None,
                  data_units = None
                  ):
@@ -339,6 +339,120 @@ class Emperical_data():
                                         , 'method_of_fitting': fit_method}
 
  
+    def add_distribution(self, 
+                         distribution_name: str,
+                         params: str = None,
+                         rv_continous_frozen: Type[st.rv_continuous] = None,
+                         scipy_name: str = None,
+                         fit_method: str = None):
+        """Add a distribution to the data
+        
+        This function adds a distribution to the data. 
+        This can be used to add a distribution that is not fitted to the data, but is known.
+        This can be used to compare the emperical data to a known distribution.
+        
+        Parameters
+        ----------
+        self : `data_array`
+            Numpy array containing time series data. 
+            Note that this is already an attribute of the class.
+        distribution_name : `str`
+            Name of the distribution to be added.
+        params : `list`
+            List containing the parameters of the distribution.
+        fit_method : `str`
+            Method of fitting the distribution to the data.
+            Options are:
+            - 'MLE' Maximum Likelyhood Estimator
+            - 'MM'  Method of moments
+        
+        Returns
+        -------
+        None
+        
+        """
+        
+        distribution_mapping = {
+            'lognormal': st.lognorm,
+            'gumbel': st.gumbel_r,
+            'exponential': st.expon,
+            'weibull': st.weibull_min,
+            'normal': st.norm,
+            'gamma': st.gamma
+            # Add more distributions if needed
+        }
+        
+        # This is necessary because of name convention in other packages
+        distr_scipy_names = {
+            'lognormal': 'lognorm',
+            'gumbel': 'gumbel_r',
+            'exponential': 'expon',
+            'weibull': 'weibul_min',
+            'normal': 'norm',
+            'gamma': 'gamma'
+            # Add more distributions if needed
+        }
+        
+        
+        self.distributions[distribution_name] = {'params': params, 'RV_': rv_continous_frozen,
+                                                 'scipy_name': None,
+                                                 'method_of_fitting': fit_method}
+        
+    def plot_distributions(self,
+                            axes=None,
+                            fig=None,
+                            log_scale = True):
+        """
+        Plot the defined distributions
+        
+        Parameters
+        ----------
+        self : `data_array`
+            Numpy array containing time series data. 
+            Note that this is already an attribute of the class.
+        axes : `matplotlib.axes.Axes`
+            Axes object to plot on. If not provided, a new figure will be created.
+        fig : `matplotlib.figure.Figure`
+            Figure object to plot on. If not provided, a new figure will be created.
+        
+        Returns
+        -------
+        fig : `matplotlib.figure.Figure`
+            Figure object containing the plot.
+        ax : `matplotlib.axes.Axes`
+            Axes object containing the plot.        
+        
+        """
+        
+        # Create figure and axes if not provided
+        if axes is None:
+            fig, axes = plt.subplots(1, 1, figsize=(14, 5))
+            
+        # Plot the PDF's of all the fitted distributions, if none, prints statement
+        if not self.distributions:
+            print("No fitted distributions defined.")
+        else:
+            # Loops over all items (which are also dictionaries) in the {distributions} dictionary
+            # It extracts:
+            #  - name of the speficifc distribution 
+            #  - dictionary containing all information for that specific distribution
+            for distribution_name, distribution_dict in self.distributions.items():
+                quantiles = np.linspace(0.01, 0.99, 100)  # From 1% to 99% quantile
+
+                # Use the ppf to get x values
+                x = distribution_dict['RV_'].ppf(quantiles)
+                axes.plot(x, 1 - distribution_dict['RV_'].cdf(x), label=distribution_name)
+        
+        # Define the labels and text for the plot
+        axes.set_xlabel(f'{self.data_units}')
+        axes.set_ylabel('Probability of exceedance')
+        axes.set_title(f'PDF of {self.data_title}', fontsize=18)
+        
+        if log_scale == True:
+            axes.set_yscale('log')
+        axes.legend()
+        axes.grid()
+        
         
     def graphical_assessing_goodness_of_fit(self,
                                          axes=None,

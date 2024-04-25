@@ -27,7 +27,8 @@ from matplotlib import cm
 class Region_of_interest():
     def __init__(self,
                  function = None,
-                 random_samples : np.array = None
+                 random_samples : np.array = None,
+                 labels = None
                  ):
         """
         Region_of_interest class for 2 dimensional probabilistic analysis.
@@ -46,10 +47,14 @@ class Region_of_interest():
             Q-Dimensional array of random samples.
             Each row is 1 random sample of the Q-Dimensional distribution
             1st column is X1, 2nd column is X2,...., Qth column = Q.
+        labels : list
+            List of labels for the random samples.
+            labels = ['X1', 'X2', ...]
             
         """
         self.function = function
         self.random_samples = random_samples
+        self.labels = labels
     
         # Create empty dictionary to store the emperical contour plot values
         self.emperical_contour = {}
@@ -146,7 +151,8 @@ class Region_of_interest():
                                 xy_lim = None,
                                 axes=None,
                                 fig=None,
-                                bandwidth=0.5):
+                                bandwidth=0.5,
+                                equal_axis = None):
         """
         Plot the emperical contours of the random samples using the KernelDensity.
         
@@ -214,9 +220,13 @@ class Region_of_interest():
             fig, axes = plt.subplots(1, 1, figsize=(14, 5))
         
             
-        if xy_lim is None:
+        if equal_axis is None and xy_lim is None:
+            xy_lim = [np.min(self.random_samples[:, 0]), np.max(self.random_samples[:, 0]), 
+                      np.min(self.random_samples[:, 1]), np.max(self.random_samples[:, 1])]
+        if equal_axis is not None and xy_lim is None:
             xy_lim = [np.min(self.random_samples), np.max(self.random_samples), 
                       np.min(self.random_samples), np.max(self.random_samples)]
+            
             
         # Set the x and y limits of the plot
         axes.set_xlim(xy_lim[0], xy_lim[1])
@@ -233,9 +243,12 @@ class Region_of_interest():
 
         
 
-         
-        axes.set_xlabel('X1')
-        axes.set_ylabel('X2')
+        if self.labels is not None:
+            axes.set_xlabel(self.labels[0])
+            axes.set_ylabel(self.labels[1])
+        else:
+            axes.set_xlabel('X1')
+            axes.set_ylabel('X2')
         axes.set_title('Emperical Contour Plot of Sampled Data')
         axes.legend()  
         axes.grid(True)
@@ -247,7 +260,8 @@ class Region_of_interest():
     def plot_inside_function(self,
                              xy_lim = None,
                              axes=None,
-                             fig=None):
+                             fig=None,
+                             equal_axis = None):
         """
         Plot all the random samples, and highlight the ones inside the function region of interest.
         
@@ -294,10 +308,14 @@ class Region_of_interest():
                      self.emperical_contour_dict['density_values']
                      , levels=8, cmap=cm.Blues, alpha=0.8, zorder=4)
 
-        if xy_lim is None:
+        if equal_axis is None and xy_lim is None:
+            xy_lim = [np.min(self.random_samples[:, 0]), np.max(self.random_samples[:, 0]), 
+                      np.min(self.random_samples[:, 1]), np.max(self.random_samples[:, 1])]
+        if equal_axis is not None and xy_lim is None:
             xy_lim = [np.min(self.random_samples), np.max(self.random_samples), 
                       np.min(self.random_samples), np.max(self.random_samples)]
 
+            
         # Plot the function
         x = np.linspace(xy_lim[0], xy_lim[1], 100)
         y = np.linspace(xy_lim[2], xy_lim[3], 100)
@@ -311,8 +329,13 @@ class Region_of_interest():
         
         axes.set_zorder(4)
         axes.legend()
-        axes.set_xlabel(f'X1')
-        axes.set_ylabel(f'X2')
+        
+        if self.labels is not None:
+            axes.set_xlabel(self.labels[0])
+            axes.set_ylabel(self.labels[1])
+        else:
+            axes.set_xlabel('X1')
+            axes.set_ylabel('X2')
         axes.set_title(f"Random samples inside the function region of interest \n {self.function_percentage_inside*100:.2f}% samples inside")
         axes.set_aspect("equal")
         axes.grid(True)
