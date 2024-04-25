@@ -5,7 +5,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name='bivariate'
-version='2.0.2'
+version='2.0.3'
 description='This package contains methods that assist in performing bivariate analysis of datasets.'
 license = {file = "LICENSE.txt"}
 authors = [
