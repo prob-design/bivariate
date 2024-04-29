@@ -35,7 +35,7 @@ test = [
   "mypy == 1.5.1",
 ]
 docs = [
-  "sphinx ~= 7",
+  "sphinx ~= 7.0.0",
   "alabaster",
   "numpydoc"
 ]
