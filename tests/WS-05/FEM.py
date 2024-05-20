@@ -18,6 +18,9 @@ import scipy
 from scipy.optimize import fsolve # for plotting the LSF
 from matplotlib.pylab import rcParams
 
+
+
+
 # ----------------------------------------------- FEM model  ----------------------------------------------- #
 
 def Beam2DMatrices(m, EA, EI, NodeCoord):
@@ -78,13 +81,13 @@ J = (np.pi*a**3*b**3)/(a**2 + b**2) #Torsion constant of the beam
 G = E_c / (2*(1+0.3))
 rho_c = 2500                        #kg/m^3 of concrete
 
-print(f'Height of the beam: {a} m')
-print(f'Width of the beam: {b} m')
-print(f'Area of the beam: {A} m2')
-print(f'E-modulus of the beam: {E_c} Pa')
-print(f'Torsion constant of the beam: {J} m4')
-print(f'Shear modulus of the beam: {G} Pa')
-print(f'Density of the beam: {rho_c} kg/m3')
+print(f'Height of the beam: {a:.2e} m')
+print(f'Width of the beam: {b:.2e} m')
+print(f'Area of the beam: {A:.2e} m2')
+print(f'E-modulus of the beam: {E_c:.2e} Pa')
+print(f'Torsion constant of the beam: {J:.2e} m4')
+print(f'Shear modulus of the beam: {G:.2e} Pa')
+print(f'Density of the beam: {rho_c:.2e} kg/m3')
 print()
 
 Beam_m = 150000                    # [kg/m]
@@ -93,12 +96,12 @@ Beam_EIz = E_c*(np.pi*a*b**3)/4
 Beam_EA = E_c*A                    # [N]
 Beam_GJ = G*J                      # [N.m2]
 Beam_Im = rho_c*J                  #[m2]
-print(f'Mass per unit length of the beam: {Beam_m} kg/m')
-print(f'Bending stiffness of the beam, x-direction : {Beam_EI} N.m2')
-print(f'Bending stiffness of the beam, z-direction: {Beam_EIz} N.m2')
-print(f'Axial stiffness of the beam: {Beam_EA} N')
-print(f'Torsional stiffness of the beam: {Beam_GJ} N.m2')
-print(f'Moment of inertia of the beam: {Beam_Im} m2')
+print(f'Mass per unit length of the beam: {Beam_m:.2e} kg/m')
+print(f'Bending stiffness of the beam, x-direction : {Beam_EI:.2e} N.m2')
+print(f'Bending stiffness of the beam, z-direction: {Beam_EIz:.2e} N.m2')
+print(f'Axial stiffness of the beam: {Beam_EA:.2e} N')
+print(f'Torsional stiffness of the beam: {Beam_GJ:.2e} N.m2')
+print(f'Moment of inertia of the beam: {Beam_Im:.2e} m2')
 
 
 # ----------------------------------------- Creating Tunnel elements ----------------------------------------- #
@@ -120,6 +123,7 @@ dth = 0.0509 #deg
 TunCX = TunRad*np.cos( np.deg2rad( np.arange(TunAng[0], TunAng[1]-dth, -dth) ) ) + DistLandings/2
 TunCY = TunRad*np.sin( np.deg2rad( np.arange(TunAng[0], TunAng[1]-dth, -dth) ) )
 TunCY = TunCY - min(TunCY)
+TunCZ = np.zeros(len(TunCX))  # z-coordinates are zero
 
 
 # ------------------------------------------------ Creating the nodes ------------------------------------------------ #
@@ -132,7 +136,6 @@ nNode = len(NodeC)
 Ele = [ [n1, n2, Beam_m, Beam_EA, Beam_EI] 
            for n1,n2 in zip(range(0,nNode-1), range(1,nNode)) ]
 nEle = len(Ele)
-
 
 
 # ------------------------------------------------ Creating the matrix ----------------------------------------------- #
@@ -220,12 +223,22 @@ K_FP = Kib
 
 
 
-plt.plot(TunCX, TunCY, lw=5)
+ax = plt.axes(projection='3d')
+# ax.view_init(45, 30)
+plt.plot(TunCX, TunCY, TunCZ, lw=5)
 plt.grid("on")
 plt.axis("equal")
 plt.xlabel('x (m)')
 plt.ylabel('y (m)')
-plt.title('Tunnel geometry')
+ax.set_zlabel('z (m)')  # Add label for the 3rd axis
+plt.title("Tunnel geometry")
+
+print()
+print(f'Amount of tunnel elements: {K.shape[0]/6}') # 6 dof per element
+# # Look at the matrix structure
+# plt.figure()
+# plt.spy(M_FP)
+# plt.title("Mass matrix")
 
 # Return stiffness vector
 def return_stiffness_vector():
@@ -283,79 +296,3 @@ def calculate_stress_FEM(Total_force):
     return sigma_M
     
     
-    
-# ------------------------------------------------- Run FORM and MCS ------------------------------------------------- #
-def run_FORM_and_MCS(X1, X2, X3, myLSF, mc_size = 10):
-    # Definition of the dependence structure: here, multivariate normal with correlation coefficient rho between two RV's.
-    R = ot.CorrelationMatrix(3)   
-    multinorm_copula = ot.NormalCopula(R)
-
-    # inputDistribution = ot.ComposedDistribution((wave_height_windsea, wave_height_swell, u_current), multinorm_copula)
-    inputDistribution = ot.ComposedDistribution((X1, X2, X3), multinorm_copula)
-    inputDistribution.setDescription(["windsea","swell", "u_current"])
-    inputRandomVector = ot.RandomVector(inputDistribution)
-
-    myfunction = ot.PythonFunction(3, 1, myLSF)
-
-    # Vector obtained by applying limit state function to X1 and X2
-    outputvector = ot.CompositeRandomVector(myfunction, inputRandomVector)
-
-    # Define failure event: here when the limit state function takes negative values
-    failureevent = ot.ThresholdEvent(outputvector, ot.Less(), 0)
-    failureevent.setName('LSF inferior to 0')
-
-    optimAlgo = ot.Cobyla()
-    optimAlgo.setMaximumEvaluationNumber(100000)
-    optimAlgo.setMaximumAbsoluteError(1.0e-10)
-    optimAlgo.setMaximumRelativeError(1.0e-10)
-    optimAlgo.setMaximumResidualError(1.0e-10)
-    optimAlgo.setMaximumConstraintError(1.0e-10)
-
-    # Starting point for FORM
-    start_pt = []
-
-    algo = ot.FORM(optimAlgo, failureevent, inputDistribution.getMean())  # Maybe change 3rd argument and put start_pt defined above
-    algo.run()
-    global result
-    result = algo.getResult()
-    x_star = result.getPhysicalSpaceDesignPoint()        # Design point: original space
-    global u_star 
-    u_star = result.getStandardSpaceDesignPoint()        # Design point: standard normal space
-    pf = result.getEventProbability()                    # Failure probability
-    global beta 
-    beta = result.getHasoferReliabilityIndex()           # Reliability index
-    print('FORM result, pf = {:.4f}'.format(pf))
-    print('FORM result, beta = {:.3f}\n'.format(beta))
-    print('The design point in the u space: ', u_star)
-    print('The design point in the x space: ', x_star)
-
-    montecarlosize = mc_size
-    outputSample = outputvector.getSample(montecarlosize)
-
-    number_failures = sum(i < 0 for i in np.array(outputSample))[0]      # Count the failures, i.e the samples for which g(x)<0
-    pf_mc = number_failures/montecarlosize                               # Calculate the failure probability                       
-
-
-    import matplotlib.pyplot as plt
-    plt.ion()
-    print('pf for MCS: ', pf_mc)
-    print()
-    print()
-    alpha_ot = result.getImportanceFactors()
-    print(f'The importance factors {alpha_ot}')
-    result.drawImportanceFactors()
-    
-    plt.show()
-
-    
-def run_FORM_and_MCS_part2():
-    print(f'---------------Running part 2 of FORM and MCS-------------------')
-    alpha = u_star/beta
-    print("The importance factors as defined in the textbook are: ", alpha)
-    sens = result.getHasoferReliabilityIndexSensitivity()
-    print("The sensitivity factors of the reliability index "
-        "with regards to the distribution parameters are:\n")
-    for i in range(sens.getSize()):
-        print(sens.at(i))
-        
-    result.drawImportanceFactors()
