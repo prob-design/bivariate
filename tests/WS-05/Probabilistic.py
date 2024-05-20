@@ -19,8 +19,13 @@ from scipy.optimize import fsolve # for plotting the LSF
 from matplotlib.pylab import rcParams
 
 # ------------------------------------------------- Run FORM and MCS ------------------------------------------------- #
-def run_FORM_and_MCS(X1, X2, X3, myLSF, mc_size = 10):
+
+
+
+def input_OpenTurns(X1, X2, X3, myLSF):
     # Definition of the dependence structure: here, multivariate normal with correlation coefficient rho between two RV's.
+    global R, multinorm_copula, inputDistribution, inputRandomVector, myfunction, outputvector, failureevent, optimAlgo 
+    global start_pt, start, algo
     R = ot.CorrelationMatrix(3)   
     multinorm_copula = ot.NormalCopula(R)
 
@@ -45,6 +50,9 @@ def run_FORM_and_MCS(X1, X2, X3, myLSF, mc_size = 10):
     optimAlgo.setMaximumResidualError(1.0e-10)
     optimAlgo.setMaximumConstraintError(1.0e-10)
 
+
+def run_FORM_analysis():
+    global result, x_star, u_star, pf, beta
     # Starting point for FORM
     start_pt = []
 
@@ -52,24 +60,25 @@ def run_FORM_and_MCS(X1, X2, X3, myLSF, mc_size = 10):
     start = time.time()
     algo = ot.FORM(optimAlgo, failureevent, inputDistribution.getMean())  # Maybe change 3rd argument and put start_pt defined above
     algo.run()
-    global result
     result = algo.getResult()
     x_star = result.getPhysicalSpaceDesignPoint()        # Design point: original space
-    global u_star 
     u_star = result.getStandardSpaceDesignPoint()        # Design point: standard normal space
     pf = result.getEventProbability()                    # Failure probability
-    global beta 
     beta = result.getHasoferReliabilityIndex()           # Reliability index
     
     # End timer
     end = time.time()
-    print(f'The FORM analysis took {end-start} seconds')
+    print(f'The FORM analysis took {end-start:.3f} seconds')
     
     print('FORM result, pf = {:.4f}'.format(pf))
     print('FORM result, beta = {:.3f}\n'.format(beta))
     print('The design point in the u space: ', u_star)
     print('The design point in the x space: ', x_star)
+    
+    return result, x_star, u_star, pf, beta    
 
+
+def run_MonteCarloSimulation(mc_size):
     # Monte Carlo simulation
     # Start timer
     start = time.time()
@@ -81,17 +90,18 @@ def run_FORM_and_MCS(X1, X2, X3, myLSF, mc_size = 10):
 
     # End timer and print the time
     end = time.time()
-    print(f'The Monte Carlo simulation took {end-start} seconds')
-
-
-
+    print(f'The Monte Carlo simulation took {end-start:.3f} seconds')
     
-def run_FORM_and_MCS_part2():
+    print('pf for MCS: ', pf_mc)
+    
+    return pf_mc
+
+
+
+def importance_factors():
     print(f'---------------Running part 2 of FORM and MCS, importantce factors-------------------')
     import matplotlib.pyplot as plt
     plt.ion()
-    print('pf for MCS: ', pf_mc)
-    print()
     print()
     alpha_ot = result.getImportanceFactors()
     print(f'The importance factors {alpha_ot}')
@@ -108,3 +118,5 @@ def run_FORM_and_MCS_part2():
         print(sens.at(i))
         
     result.drawImportanceFactors()
+    
+    return alpha_ot, alpha, sens
